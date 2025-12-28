@@ -18,6 +18,8 @@ def DQC_Dialect : Dialect {
   }];
   let cppNamespace = "::dqc";
   let hasConstantMaterializer = 1;
+  let usePropertiesForAttributes = 0;
+  let useDefaultTypePrinterParser = 1;
 }
 
 //===----------------------------------------------------------------------===//
@@ -117,7 +119,7 @@ def DQC_TeleGateMultiOp : DQC_Op<"telegate_multi", [SameVariadicOperandSize]> {
     Variadic<DQC_QubitType>:$target_qubits,
     DQC_EPRHandleType:$epr_handle,
     I32Attr:$control_qpu,
-    Variadic<I32Attr>:$target_qpus
+    I32ArrayAttr:$target_qpus
   );
   let results = (outs Variadic<DQC_QubitType>:$results);
   let hasCustomAssemblyFormat = 1;

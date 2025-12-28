@@ -14,12 +14,16 @@ include(TableGen)
 include(AddLLVM)
 include(AddMLIR)
 include(HandleLLVMOptions)
+include_directories(${LLVM_INCLUDE_DIRS})
+include_directories(${MLIR_INCLUDE_DIRS})
 
 #===---------- DQC Compiler Configuration ----------===
 
 set(DQC_MAIN_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(DQC_INCLUDE_DIRS "${DQC_MAIN_INCLUDE_DIR}")
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 
 add_subdirectory(include)
 add_subdirectory(lib)
+add_subdirectory(tools)
 add_subdirectory(test)

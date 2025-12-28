@@ -10,6 +10,15 @@ add_llvm_library(
 
   ADDITIONAL_HEADER_DIRS
   ${DQC_INCLUDE_DIRS}
+
+  LINK_LIBS
+  PUBLIC
+  DQCDialect
+  MLIRIR
+  MLIRPass
+  MLIRTransforms
+  MLIRFuncDialect
+  MLIRArithDialect
 )
 
 target_include_directories(DQCPasses PUBLIC ${DQC_INCLUDE_DIRS})

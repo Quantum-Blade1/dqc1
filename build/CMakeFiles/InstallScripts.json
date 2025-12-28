@@ -1,0 +1,21 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/DQC/dqc-compiler/build/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/include/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/include/dqc/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/lib/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/lib/Dialect/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/lib/Passes/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/lib/Passes/Partitioning/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/lib/Passes/Synthesis/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/lib/Passes/Optimization/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/lib/Lowering/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/tools/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/tools/dqc-opt/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/test/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/test/IR/cmake_install.cmake",
+		"C:/DQC/dqc-compiler/build/test/Passes/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

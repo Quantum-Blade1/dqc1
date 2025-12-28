@@ -4,31 +4,31 @@
 //
 //===----------------------------------------------------------===//
 
-#include "dqc/Passes.h"
 #include "mlir/Pass/PassRegistry.h"
+#include "dqc/Passes.h"
+#include "mlir/Pass/Pass.h"
 
+namespace dqc {
 extern std::unique_ptr<mlir::Pass> createInteractionGraphPass();
 extern std::unique_ptr<mlir::Pass> createTeleGateSynthesisPass();
 extern std::unique_ptr<mlir::Pass> createGreedyReorderingPass();
 extern std::unique_ptr<mlir::Pass> createMPILoweringPass();
+} // namespace dqc
 
-namespace mlir {
 namespace dqc {
 
 void registerDQCPasses() {
-  registerPass([]() -> std::unique_ptr<Pass> {
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
     return createInteractionGraphPass();
   });
-  registerPass([]() -> std::unique_ptr<Pass> {
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
     return createTeleGateSynthesisPass();
   });
-  registerPass([]() -> std::unique_ptr<Pass> {
+  mlir::registerPass([]() -> std::unique_ptr<mlir::Pass> {
     return createGreedyReorderingPass();
   });
-  registerPass([]() -> std::unique_ptr<Pass> {
-    return createMPILoweringPass();
-  });
+  mlir::registerPass(
+      []() -> std::unique_ptr<mlir::Pass> { return createMPILoweringPass(); });
 }
 
-}  // namespace dqc
-}  // namespace mlir
+} // namespace dqc

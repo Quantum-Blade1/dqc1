@@ -1,10 +1,10 @@
 #===---------- DQC Include Directory ----------===
 
-set(LLVM_TARGET_DEFINITIONS ${DQC_MAIN_INCLUDE_DIR}/dqc/DQCOps.td)
-mlir_tablegen(${CMAKE_CURRENT_BINARY_DIR}/DQCOps.h.inc -gen-op-decls)
-mlir_tablegen(${CMAKE_CURRENT_BINARY_DIR}/DQCOps.cpp.inc -gen-op-defs)
-mlir_tablegen(${CMAKE_CURRENT_BINARY_DIR}/DQCDialect.h.inc -gen-dialect-decls)
-mlir_tablegen(${CMAKE_CURRENT_BINARY_DIR}/DQCDialect.cpp.inc -gen-dialect-defs)
+set(LLVM_TARGET_DEFINITIONS ${DQC_MAIN_INCLUDE_DIR}/dqc/DQCDialect.td)
+mlir_tablegen(DQCOps.h.inc -gen-op-decls)
+mlir_tablegen(DQCOps.cpp.inc -gen-op-defs)
+mlir_tablegen(DQCDialect.h.inc -gen-dialect-decls)
+mlir_tablegen(DQCDialect.cpp.inc -gen-dialect-defs)
 add_public_tablegen_target(DQCIncGen)
 
 # Add a custom target to copy generated files to the include directory

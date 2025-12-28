@@ -8,6 +8,7 @@
 #include "dqc/DQCDialect.h"
 #include "mlir/IR/OpImplementation.h"
 
+using namespace llvm;
 using namespace mlir;
 using namespace dqc;
 
@@ -18,8 +19,8 @@ using namespace dqc;
 // DQCTeleGateMultiOp: Custom Assembly Format
 //===------------------------------------------------------===//
 
-ParseResult DQCTeleGateMultiOp::parse(OpAsmParser &parser,
-                                       OperationState &result) {
+ParseResult TeleGateMultiOp::parse(OpAsmParser &parser,
+                                   OperationState &result) {
   Location loc = parser.getCurrentLocation();
   SmallVector<OpAsmParser::UnresolvedOperand, 8> operands;
   SmallVector<Type, 8> operand_types;
@@ -45,10 +46,17 @@ ParseResult DQCTeleGateMultiOp::parse(OpAsmParser &parser,
   if (parser.parseTypeList(result_types))
     return failure();
 
+  // Resolve operands
+  if (parser.resolveOperands(operands, operand_types, loc, result.operands))
+    return failure();
+
+  // Add types
+  result.addTypes(result_types);
+
   return success();
 }
 
-void DQCTeleGateMultiOp::print(OpAsmPrinter &printer) {
+void TeleGateMultiOp::print(OpAsmPrinter &printer) {
   printer << " ";
   printer.printOperands(getOperands());
   printer << " : ";
@@ -56,4 +64,3 @@ void DQCTeleGateMultiOp::print(OpAsmPrinter &printer) {
   printer << " -> ";
   printer.printTypes(getResultTypes());
 }
-

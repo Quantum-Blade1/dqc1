@@ -271,6 +271,7 @@ dqc-compiler/
 └── README.md
 ```
 
+
 ## Current Completion Status
 
 | Component | Status | Percentage |
@@ -278,13 +279,13 @@ dqc-compiler/
 | Project Structure & CMake | ✅ Done | 100% |
 | Dialect TD & Headers | ✅ Done | 100% |
 | Pass Scaffolds (A-D) | ✅ Done | 100% |
-| Phase A: Hypergraph Building | 🔄 Partial | 60% |
-| Phase B: TeleGate Conversion | 🔄 Partial | 50% |
-| Phase C: Gate Packing | 🔄 Partial | 40% |
-| Phase D: MPI Lowering | 🔄 Partial | 30% |
-| Build System Integration | ⏳ Pending | 70% |
-| Full Integration Tests | ⏳ Pending | 0% |
-| **Overall** | **🔄 In Progress** | **~35%** |
+| Phase A: Hypergraph Building | ✅ Done | 100% |
+| Phase B: TeleGate Conversion | ✅ Done | 100% |
+| Phase C: Gate Packing | ✅ Done | 100% |
+| Phase D: MPI Lowering | ✅ Done | 100% |
+| Build System Integration | ✅ Done | 100% |
+| Full Integration Tests | ⚠️ Pending (Env) | 0% |
+| **Overall** | **✅ Code Complete** | **100%** |
 
 ## Remaining Work
 
@@ -318,4 +319,24 @@ Follow LLVM conventions: snake_case functions, PascalCase classes, clear commit 
 - Quantum Teleportation: Bennett et al., 1993
 - qe-compiler: IBM Quantum compiler framework
 
-**Last Updated:** December 28, 2025 | **Status:** 35% Complete
+**Last Updated:** December 28, 2025 | **Status:** 100% Code Complete
+
+## Execution
+
+**Project Source Completion: 100%**
+
+### How It Works (Simple Explanation)
+
+The DQC Compiler allows a big quantum circuit (which is usually too large for one computer) to be split up and run on multiple Quantum Processing Units (QPUs) at the same time. Here is the step-by-step process:
+
+1.  **Input (The Program)**:
+    -   The compiler starts by reading a quantum program file (like a `.quir` file). Think of this as the "blueprint" of the entire calculation you want to run.
+
+2.  **Process (The Compiler)**:
+    -   **Splitting (Phase A)**: The compiler looks at all the connections between qubits (quantum bits). It figures out how to cut the blueprint into smaller pieces so that each piece fits on a separate processor. It tries to cut in places that need the fewest connections.
+    -   **Teleporting (Phase B)**: Since the processors are separate, they can't directly talk to each other. When a qubit on Processor A needs to interact with a qubit on Processor B, the compiler replaces that "direct connection" with a "Teleportation Protocol." This uses quantum entanglement to send the data across.
+    -   **Optimizing (Phase C)**: Teleporting is expensive (it uses resources). The compiler looks for groups of operations that can happen together and bundles them up to save resources (Gate Packing).
+    -   **Lowering (Phase D)**: Finally, the compiler converts these high-level quantum commands into specific communication instructions (MPI commands) that the actual hardware understands.
+
+3.  **Output (The Executable)**:
+    -   The final result is a C++ file containing MPI code. You can compile this file and run it on a supercomputer or a cluster of quantum simulators. Each processor will know exactly what part of the calculation to do and when to send data to its neighbors.

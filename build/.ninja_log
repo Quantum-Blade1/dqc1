@@ -1,0 +1,22 @@
+# ninja log v7
+12	149	7886580356945147	include/dqc/DQCDialect.cpp.inc	615f40766fefa33c
+12	149	7886580356945147	C:/DQC/dqc-compiler/build/include/dqc/DQCDialect.cpp.inc	615f40766fefa33c
+23	150	7886580356950426	include/dqc/DQCDialect.h.inc	cb2c77aa63db0a47
+23	150	7886580356950426	C:/DQC/dqc-compiler/build/include/dqc/DQCDialect.h.inc	cb2c77aa63db0a47
+45	161	7886580357082154	include/dqc/DQCOps.h.inc	2c614717ec91b1e1
+45	161	7886580357082154	C:/DQC/dqc-compiler/build/include/dqc/DQCOps.h.inc	2c614717ec91b1e1
+34	162	7886580357082154	include/dqc/DQCOps.cpp.inc	c46016eeeb1a5d26
+34	162	7886580357082154	C:/DQC/dqc-compiler/build/include/dqc/DQCOps.cpp.inc	c46016eeeb1a5d26
+242	492	7886580358001383	include/dqc/CMakeFiles/CopyDQCInc	a3093bfc856c0b78
+242	492	7886580358001383	C:/DQC/dqc-compiler/build/include/dqc/CMakeFiles/CopyDQCInc	a3093bfc856c0b78
+101	183	7886581697952037	include/dqc/DQCDialect.cpp.inc	615f40766fefa33c
+101	183	7886581697952037	C:/DQC/dqc-compiler/build/include/dqc/DQCDialect.cpp.inc	615f40766fefa33c
+114	187	7886581698710260	include/dqc/DQCDialect.h.inc	cb2c77aa63db0a47
+114	187	7886581698710260	C:/DQC/dqc-compiler/build/include/dqc/DQCDialect.h.inc	cb2c77aa63db0a47
+124	188	7886581698173954	include/dqc/DQCOps.cpp.inc	c46016eeeb1a5d26
+124	188	7886581698173954	C:/DQC/dqc-compiler/build/include/dqc/DQCOps.cpp.inc	c46016eeeb1a5d26
+134	198	7886581698270974	include/dqc/DQCOps.h.inc	2c614717ec91b1e1
+134	198	7886581698270974	C:/DQC/dqc-compiler/build/include/dqc/DQCOps.h.inc	2c614717ec91b1e1
+263	525	7886581699560579	include/dqc/CMakeFiles/CopyDQCInc	a3093bfc856c0b78
+263	525	7886581699560579	C:/DQC/dqc-compiler/build/include/dqc/CMakeFiles/CopyDQCInc	a3093bfc856c0b78
+211	7279	7886581699029287	lib/Passes/CMakeFiles/DQCPasses.dir/PassRegistry.cpp.obj	4f7e3087c5f6c8e1

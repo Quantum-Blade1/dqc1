@@ -9,6 +9,7 @@
 #include "mlir/IR/DialectImplementation.h"
 #include "llvm/ADT/TypeSwitch.h"
 
+using namespace llvm;
 using namespace mlir;
 using namespace dqc;
 
@@ -23,12 +24,12 @@ namespace dqc {
 void DQCDialect::initialize() {
   // Register types
   addTypes<QubitType, EPRHandleType>();
-  
+
   // Register operations
   addOperations<
 #define GET_OP_LIST
 #include "dqc/DQCOps.cpp.inc"
-  >();
+      >();
 }
 
 //===------------------------------------------------------===//
@@ -46,8 +47,7 @@ Type DQCDialect::parseType(DialectAsmParser &parser) const {
     return EPRHandleType::get(getContext());
   }
 
-  parser.emitError(parser.getNameLoc())
-      << "unknown DQC type: " << keyword;
+  parser.emitError(parser.getNameLoc()) << "unknown DQC type: " << keyword;
   return nullptr;
 }
 
@@ -58,4 +58,4 @@ void DQCDialect::printType(Type type, DialectAsmPrinter &printer) const {
       .Default([](Type) { llvm_unreachable("unknown DQC type"); });
 }
 
-}  // namespace dqc
+} // namespace dqc

@@ -15,4 +15,4 @@
 #define GET_OP_CLASSES
 #include "dqc/DQCOps.h.inc"
 
-#endif  // DQC_DQCOPS_H
+#endif // DQC_DQCOPS_H
