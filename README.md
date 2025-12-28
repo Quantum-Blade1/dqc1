@@ -4,6 +4,10 @@ A production-grade MLIR-based compiler framework for transforming monolithic qua
 
 **Project Status:** ~35% complete (core dialect, pass skeletons, CMake setup done; Phase-specific implementations and build integration ongoing).
 
+**📚 Documentation:**
+- **[SETUP.md](./SETUP.md)** — Detailed installation guide for WSL2, Linux, macOS, and Windows
+- **[DEVELOPMENT.md](./DEVELOPMENT.md)** — Contributing guide, adding passes, testing, and debugging
+
 ## Quick Start
 
 ### Build Instructions (WSL2/Linux)
