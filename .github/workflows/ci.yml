@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-smoke:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake ninja-build git python3 python3-pip pkg-config
+
+      - name: Clone and build LLVM/MLIR (mlir-only)
+        run: |
+          git clone --depth 1 https://github.com/llvm/llvm-project.git llvm-project
+          mkdir llvm-project/build && cd llvm-project/build
+          cmake -G Ninja ../llvm -DLLVM_ENABLE_PROJECTS="mlir" -DCMAKE_BUILD_TYPE=Release -DLLVM_TARGETS_TO_BUILD="X86" -DCMAKE_INSTALL_PREFIX=$HOME/llvm-install
+          cmake --build . -j 2
+          cmake --install . --prefix $HOME/llvm-install
+
+      - name: Configure project
+        run: |
+          mkdir -p build && cd build
+          cmake -G Ninja .. -DMLIR_DIR=$HOME/llvm-install/lib/cmake/mlir -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build project
+        run: |
+          cmake --build build -j 2
+
+      - name: Run smoke tests
+        run: |
+          build/tools/dqc-opt/dqc-opt test/IR/dqc_ir_test.mlir --dqc-interaction-graph --dqc-greedy-reordering -o -
+
+      - name: Upload build logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmake-log
+          path: build/CMakeFiles
