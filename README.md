@@ -122,7 +122,7 @@ Roadmap and Next Steps
 Contacts and Maintainers
 ------------------------
 
-Project maintainer (contact text placeholder): maintainers@example.org
+Project maintainer (contact text placeholder): KrishKumarSharma72@gmail.com
 
 License
 -------
