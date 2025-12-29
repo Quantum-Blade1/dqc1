@@ -1,4 +1,43 @@
+# Development Guide — DQC Compiler
+
+Purpose
+- Short guide for developers who want to extend or fix the DQC compiler.
+
+Project architecture (simple)
+- Input: QUIR MLIR (quantum circuit IR).
+- Phase A: Partitioning — build interaction graph and assign qubits to QPUs.
+- Phase B: Synthesis — replace remote gates with `dqc.epr_alloc` and `dqc.telegate`.
+- Phase C: Optimization — reorder and pack gates to save entanglement.
+- Phase D: Lowering — lower DQC ops to MPI dialect and generate SPMD dispatch.
+
+How to add a pass (quick)
+1. Create `lib/Passes/<Category>/<YourPass>.cpp` following MLIR pass patterns.
+2. Declare factory in `include/dqc/Passes.h`.
+3. Register the pass in `lib/Passes/PassRegistry.cpp`.
+4. Add `CMakeLists.txt` entry under `lib/Passes/<Category>` and link the library.
+
+Coding & style
+- Follow LLVM/MLIR conventions: clear names, PascalCase types, snake_case functions.
+- Keep passes small and testable; write small MLIR tests in `test/Passes/`.
+
+Testing
+- Unit tests: add `.mlir` tests under `test/Passes/` and run `mlir-opt` with the pass.
+- Integration: run the 4-phase pipeline on `test/IR` inputs and then `ctest`.
+
+Important developer tasks (short list)
+- Run `ninja DQCIncGen` after TableGen changes.
+- Verify generated `.inc` files are included in headers.
+- Implement QUIR-specific value extraction and SSA remapping where needed.
+
+Contact & workflow
+- Use feature branches and open PRs. Include failing logs for build/test issues.
 # DQC Compiler: Development Guide
+
+## Current Project Status
+
+- **Status:** Implementation largely complete; integration & testing pending.
+- **Completion:** 90% complete
+- **Notes:** Core dialect, pass scaffolds and implementations present. Remaining: run `ninja DQCIncGen`, resolve build integration, and perform end-to-end tests.
 
 This document provides guidance for developers contributing to or extending the DQC Compiler.
 

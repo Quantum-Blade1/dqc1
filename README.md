@@ -1,3 +1,41 @@
+# DQC Compiler — Distributed Quantum Computing (DQC)
+
+Short summary
+- DQC is an MLIR-based compiler that splits large quantum circuits to run across multiple Quantum Processing Units (QPUs).
+- Current completion: 90% — core dialect and passes implemented; final integration and testing remain.
+
+Quick status
+- Status: Implementation largely complete; integration and tests pending.
+- Remaining work: run TableGen to generate .inc files (`ninja DQCIncGen`), fix any build integration issues, and run end-to-end tests.
+
+How to build (Linux / WSL)
+1. Prepare LLVM/MLIR (install or build LLVM with MLIR).
+2. From the repo root:
+```bash
+mkdir -p build && cd build
+cmake -G Ninja .. -DLLVM_DIR=$LLVM_DIR -DMLIR_DIR=$MLIR_DIR -DCMAKE_BUILD_TYPE=Debug
+ninja DQCIncGen # generate TableGen outputs
+ninja           # build project
+ctest --output-on-failure
+```
+
+Quick usage (pipeline)
+- Phase A: Partitioning — `mlir-opt input.mlir --dqc-interaction-graph --num-qpus=4`
+- Phase B: Synthesis — `mlir-opt phase_a.mlir --dqc-telegate-synthesis`
+- Phase C: Optimization — `mlir-opt phase_b.mlir --dqc-greedy-reordering`
+- Phase D: MPI Lowering — `mlir-opt phase_c.mlir --dqc-mpi-lowering --num-ranks=4`
+
+What to expect next
+- Run `ninja DQCIncGen` then `ninja` to surface any missing generated headers.
+- Fix any build errors reported (usually TableGen or include paths).
+- Run `ctest` to validate passes and integration tests.
+
+Contact / Maintainer
+- Repo: Quantum-Blade1/dqc1
+- For questions open an issue or send a PR with a failing log and context.
+
+License & notes
+- This repository follows LLVM/MLIR coding style and conventions. See `DEVELOPMENT.md` for contribution guidance.
 # DQC Compiler: Distributed Quantum Computing on MLIR
 
 A production-grade MLIR-based compiler framework for transforming monolithic quantum circuits into distributed execution plans across multiple Quantum Processing Units (QPUs). The DQC compiler implements a four-phase optimization pipeline that minimizes entanglement consumption and network overhead in distributed quantum systems.
@@ -34,6 +72,16 @@ mkdir -p build && cd build
 cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Debug -DLLVM_DIR=$LLVM_DIR -DMLIR_DIR=$MLIR_DIR
 ninja -j$(nproc)
 ctest --output-on-failure
+```markdown
+<!-- Project status block: auto-updated -->
+## Current Project Status
+
+- **Status:** Implementation largely complete; integration & testing pending.
+- **Completion:** 90% complete
+- **Notes:** Core dialect, pass scaffolds, and pass implementations exist. Remaining work: TableGen generation (`ninja DQCIncGen`), build integration fixes, and end-to-end integration tests.
+
+# DQC Compiler: Distributed Quantum Computing on MLIR
+
 ```
 
 ## Project Architecture

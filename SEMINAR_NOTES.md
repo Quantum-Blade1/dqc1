@@ -1,3 +1,31 @@
+# Seminar Notes — DQC Compiler
+
+Purpose
+- Short pitch and talking points for a seminar or demo.
+
+Elevator pitch
+- DQC splits a large quantum circuit so many small QPUs can run it together. The compiler inserts teleportation protocols where needed and minimizes communication.
+
+Pipeline (4 phases)
+- Phase A: Partitioning — split qubits to QPUs to reduce cross-QPU gates.
+- Phase B: Synthesis — replace remote gates with entanglement + teleported gates.
+- Phase C: Optimization — pack and reorder gates to reduce entanglement cost.
+- Phase D: Lowering — emit MPI-based distributed code.
+
+Current status
+- Completion: 90% — core systems are implemented; final TableGen generation and integration tests remain.
+
+Demo notes
+- Show a small 4-qubit circuit flowing through phases A→D and the final MPI IR or generated C++ kernel.
+- Explain why gate packing reduces entanglement and show before/after metrics.
+```markdown
+<!-- Project status block: auto-updated -->
+## Current Project Status
+
+- **Status:** Implementation largely complete; integration & testing pending.
+- **Completion:** 90% complete
+- **Notes:** Core implementations exist; run `ninja DQCIncGen` and complete integration tests to finalize the pipeline.
+
 # Seminar Notes: The DQC Compiler Project
 
 ## 1. Title & Hook

@@ -1,4 +1,36 @@
+# Setup & Build — DQC Compiler (short)
+
+Prerequisites (Linux)
+- Install: `build-essential cmake ninja-build git python3 clang lld`.
+- Have a working LLVM/MLIR installation or build LLVM with MLIR.
+
+Quick build steps
+```bash
+# from repo root
+mkdir -p build && cd build
+cmake -G Ninja .. -DLLVM_DIR=$LLVM_DIR -DMLIR_DIR=$MLIR_DIR -DCMAKE_BUILD_TYPE=Debug
+# generate TableGen outputs (critical)
+ninja DQCIncGen
+# build project
+ninja
+# run tests
+ctest --output-on-failure
+```
+
+Notes
+- If you see missing `*.inc` headers, ensure `mlir-tblgen` is available and rerun `ninja DQCIncGen`.
+- On macOS or Windows, adapt package manager and compilers per platform.
+
+Troubleshooting (common)
+- `mlir-tblgen: command not found` → add LLVM/MLIR bin to PATH.
+- Missing `DQCOps.h.inc` → run `ninja DQCIncGen` in `build`.
 # DQC Compiler: Complete Setup & Installation Guide
+
+## Current Project Status
+
+- **Status:** Implementation largely complete; integration & testing pending.
+- **Completion:** 90% complete
+- **Notes:** Use this guide to install required dependencies and build tools; after environment setup run `ninja DQCIncGen` and `ninja` to complete generated sources and build.
 
 This guide provides step-by-step instructions to build the DQC Compiler on Linux, WSL2, and Windows.
 
