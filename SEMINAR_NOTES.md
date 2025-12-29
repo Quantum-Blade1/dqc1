@@ -1,90 +1,64 @@
-# Seminar Notes — DQC Compiler
+Seminar Notes — Distributed Quantum Compilation (DQC1)
+=====================================================
 
-Purpose
-- Short pitch and talking points for a seminar or demo.
+These notes capture talking points, high-level diagrams and demonstration ideas used during seminars or internal walkthroughs of the DQC1 project.
 
-Elevator pitch
-- DQC splits a large quantum circuit so many small QPUs can run it together. The compiler inserts teleportation protocols where needed and minimizes communication.
+1. Motivation
+-------------
 
-Pipeline (4 phases)
-- Phase A: Partitioning — split qubits to QPUs to reduce cross-QPU gates.
-- Phase B: Synthesis — replace remote gates with entanglement + teleported gates.
-- Phase C: Optimization — pack and reorder gates to reduce entanglement cost.
-- Phase D: Lowering — emit MPI-based distributed code.
+Distributed quantum programs are those that require operations spanning multiple quantum processing units (QPUs). Key challenges include:
 
-Current status
-- Completion: 90% — core systems are implemented; final TableGen generation and integration tests remain.
+- Representing entanglement allocation (EPR pairs) and remote operations.
+- Scheduling and partitioning gates across QPUs to minimize communication cost.
+- Synthesizing teleportation-like sequences (TeleGate) to implement remote multi-qubit gates.
 
-Demo notes
-- Show a small 4-qubit circuit flowing through phases A→D and the final MPI IR or generated C++ kernel.
-- Explain why gate packing reduces entanglement and show before/after metrics.
-```markdown
-<!-- Project status block: auto-updated -->
-## Current Project Status
+2. DQC1 architecture (high-level)
+---------------------------------
 
-- **Status:** Implementation largely complete; integration & testing pending.
-- **Completion:** 90% complete
-- **Notes:** Core implementations exist; run `ninja DQCIncGen` and complete integration tests to finalize the pipeline.
+- Front-end: Programmer-facing IR (this prototype uses MLIR with a `dqc` dialect).
+- Analysis: Interaction graph that captures qubit usage and cross-QPU edges.
+- Synthesis: Replace remote gates with sequences that use EPR allocation plus `telegate` operations.
+- Optimization: Local reorderings to exploit gate commutativity and reduce communication.
+- Lowering: Map the synthesized operations to a simple runtime (MPI-like) for distributed execution.
 
-# Seminar Notes: The DQC Compiler Project
+3. Example flow to demonstrate during a talk
+-------------------------------------------
 
-## 1. Title & Hook
-**Title:** "Scaling Up: A Compiler Infrastructure for Distributed Quantum Computing"
-**Hook:** "Quantum computers today are limited by size—we have 50-100 qubits, but we need thousands. What if, instead of building one giant machine, we could connect many small ones together? This project builds the software 'brain' to make that possible."
+1. Show a simple program with a remote controlled operation.
+2. Show `dqc-opt` parsing the MLIR input.
+3. Show the interaction graph highlighting cross-QPU edges.
+4. Apply TeleGate synthesis and show the expanded sequence using `dqc.epr_alloc` and `dqc.telegate`.
+5. Apply greedy reordering and illustrate the reduction in communication cost.
+6. Optionally show lowering to MPI-like ops.
 
-## 2. The Problem
-*   **Qabit Scarcity:** Building a monolithic quantum processor with millions of qubits is incredibly hard (engineering challenges, noise, cooling).
-*   **The Networked Approach:** It's easier to build ten 100-qubit chips than one 1000-qubit chip.
-*   **The Challenge:** Connecting them is hard. You can't just "copy" data (No-Cloning Theorem). You have to "teleport" it using entanglement. This is slow and expensive.
-*   **The Gap:** Programmers don't want to manually write teleportation protocols. They just want to write code. We need a compiler to automate this.
+4. Key slides / code snippets
+----------------------------
 
-## 3. The Solution: DQC Compiler
-This project is an **MLIR-based Compiler** that takes a standard quantum circuit and transforms it into a distributed version optimized for multiple Quantum Processing Units (QPUs).
+- Example MLIR input:
 
-### Key Technologies:
-*   **MLIR (Multi-Level Intermediate Representation):** A modern compiler framework (part of LLVM) that lets us define custom "Dialects" for quantum operations.
-*   **MPI (Message Passing Interface):** The standard for supercomputing communication, used here to orchestrate the quantum chips.
+```mlir
+func.func @example_remote() {
+	%epr = dqc.epr_alloc 0, 1 : !dqc.epr_handle
+	// remote operation placeholder
+	return
+}
+```
 
-## 4. How It Works (The 4-Phase Pipeline)
-Explain the project as a pipeline that data flows through:
+- Interaction graph concept (pseudo): nodes = qubits, hyperedges = multi-qubit gates, weights = frequency/cost.
 
-### Phase A: Partitioning (The "Cut")
-*   **Goal:** Split the circuit graph into pieces (subgraphs).
-*   **Method:** We build a hypergraph where "nodes" are operations and "edges" are qubits. We use a graph partitioning algorithm (Greedy approach) to minimize the number of cut edges.
-*   **Why:** Fewer cuts = fewer teleportations = faster execution.
+5. Common questions and answers
+-------------------------------
 
-### Phase B: Synthesis (The "Bridge")
-*   **Goal:** Repair the broken connections.
-*   **Method:** Wherever a wire was cut in Phase A, the compiler inserts a **Teleportation Protocol**.
-*   **Logic:**
-    1.  Allocate an **EPR Pair** (entangled link) between the two chips.
-    2.  Perform a **Bell Measurement** on the source.
-    3.  Send the classical results to the destination.
-    4.  Apply a **Correction Operation** on the destination.
+- Q: Why use MLIR? A: MLIR provides a flexible IR with dialect support, enabling rapid prototyping of domain-specific abstractions.
+- Q: Does this run on real hardware? A: Not yet; the lowering produces a high-level MPI-like representation. A runtime or simulator is required to execute across QPUs.
+- Q: Is TeleGate optimal? A: The current TeleGate synthesis is heuristic and aimed at correctness and clarity; optimal synthesis is an open research direction.
 
-### Phase C: Optimization (The "Squeeze")
-*   **Goal:** Reduce the cost.
-*   **Method:** "Gate Packing". If we need to send data from QPU 1 to QPU 2 for *three different gates*, we don't need three separate teleportations. We can bundle them to share resources.
-*   **Result:** Reduces entanglement consumption by ~30%.
+6. Demonstration checklist
+-------------------------
 
-### Phase D: Lowering (The "Code")
-*   **Goal:** Generate runnable code.
-*   **Method:** Convert the high-level notions ("Teleport") into low-level instructions ("Send this integer to Rank 5").
-*   **Output:** C++ code using MPI.
+- Prepare a short MLIR example that triggers remote gates.
+- Start `dqc-opt` and run parse -> interaction graph -> telegate synthesis -> greedy reordering.
+- Capture before/after IR snippets to show transformation effects.
 
-## 5. Current Status & Technical Challenges
-**Status:** The compiler logic is 100% designed and implemented in C++.
+End of Seminar Notes
 
-### Why It Is Not Running Right Now (The "Bug")
-*   **The Issue:** A "Toolchain Mismatch" in the build environment.
-*   **Explanation:**
-    *   Modern C++ compilers rely on header files (`.h`) to know what functions are available.
-    *   Our project uses a code-generation tool called `mlir-tblgen` to automatically write the "boilerplate" code for our Operations.
-    *   This tool (which is version 19/20) is generating code that tries to use a feature called `BytecodeOpInterface`.
-    *   **However**, the base library installed on this machine (MSYS2 Windows environment) is an older or incomplete version that **does not contain the `BytecodeOpInterface` header file**.
-    *   So, the tool writes code that says "Include this file," and the compiler says "I can't find that file."
-*   **The Fix:** This isn't a bug in *our* code. It's a broken installation on the development machine. The fix requires reinstalling the full software suite on a standard Linux environment (like Ubuntu) where the package versions are synchronized.
-
-## 6. Conclusion
-*   We have successfully defined the language (Dialect) and the logic (Passes) for distributed quantum computing.
-*   Once the environment is fixed, this tool will allow researchers to simulate massive quantum computers by connecting many small ones together.
