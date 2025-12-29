@@ -11,9 +11,10 @@
 #include "mlir/IR/DialectImplementation.h"
 #include "mlir/IR/OpDefinition.h"
 
+#if MLIR_MAJOR_VERSION >= 18
 #include "mlir/Bytecode/BytecodeOpInterface.h"
+#endif
 
-// #include "dqc/DQCDialect.h.inc" // Removed duplicate include
 
 namespace dqc {
 // DQC types

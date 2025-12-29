@@ -3,7 +3,6 @@
 |* Op Definitions                                                             *|
 |*                                                                            *|
 |* Automatically generated file, do not edit!                                 *|
-|* From: DQCDialect.td                                                        *|
 |*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
@@ -27,7 +26,7 @@
 
 namespace dqc {
 
-static ::llvm::LogicalResult __mlir_ods_local_type_constraint_DQCDialect1(
+static ::mlir::LogicalResult __mlir_ods_local_type_constraint_DQCDialect0(
     ::mlir::Operation *op, ::mlir::Type type, ::llvm::StringRef valueKind,
     unsigned valueIndex) {
   if (!((llvm::isa<dqc::EPRHandleType>(type)))) {
@@ -37,7 +36,7 @@ static ::llvm::LogicalResult __mlir_ods_local_type_constraint_DQCDialect1(
   return ::mlir::success();
 }
 
-static ::llvm::LogicalResult __mlir_ods_local_type_constraint_DQCDialect2(
+static ::mlir::LogicalResult __mlir_ods_local_type_constraint_DQCDialect1(
     ::mlir::Operation *op, ::mlir::Type type, ::llvm::StringRef valueKind,
     unsigned valueIndex) {
   if (!((llvm::isa<dqc::QubitType>(type)))) {
@@ -47,70 +46,40 @@ static ::llvm::LogicalResult __mlir_ods_local_type_constraint_DQCDialect2(
   return ::mlir::success();
 }
 
-static ::llvm::LogicalResult __mlir_ods_local_type_constraint_DQCDialect3(
-    ::mlir::Operation *op, ::mlir::Type type, ::llvm::StringRef valueKind,
-    unsigned valueIndex) {
-  if (!((llvm::isa<dqc::QubitType>(type)))) {
-    return op->emitOpError(valueKind) << " #" << valueIndex
-        << " must be variadic of qubit, but got " << type;
+static ::mlir::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect0(
+    ::mlir::Operation *op, ::mlir::Attribute attr, ::llvm::StringRef attrName) {
+  if (attr && !(((attr.isa<::mlir::IntegerAttr>())) && ((attr.cast<::mlir::IntegerAttr>().getType().isSignlessInteger(32))))) {
+    return op->emitOpError("attribute '") << attrName
+        << "' failed to satisfy constraint: 32-bit signless integer attribute";
   }
   return ::mlir::success();
 }
 
-static ::llvm::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect1(
-    ::mlir::Attribute attr, ::llvm::StringRef attrName, llvm::function_ref<::mlir::InFlightDiagnostic()> emitError) {
-  if (attr && !(((::llvm::isa<::mlir::IntegerAttr>(attr))) && ((::llvm::cast<::mlir::IntegerAttr>(attr).getType().isSignlessInteger(32)))))
-    return emitError() << "attribute '" << attrName
-        << "' failed to satisfy constraint: 32-bit signless integer attribute";
-  return ::mlir::success();
-}
-static ::llvm::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect1(
+static ::mlir::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect1(
     ::mlir::Operation *op, ::mlir::Attribute attr, ::llvm::StringRef attrName) {
-  return __mlir_ods_local_attr_constraint_DQCDialect1(attr, attrName, [op]() {
-    return op->emitOpError();
-  });
-}
-
-static ::llvm::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect2(
-    ::mlir::Attribute attr, ::llvm::StringRef attrName, llvm::function_ref<::mlir::InFlightDiagnostic()> emitError) {
-  if (attr && !(((::llvm::isa<::mlir::FloatAttr>(attr))) && ((::llvm::cast<::mlir::FloatAttr>(attr).getType().isF32()))))
-    return emitError() << "attribute '" << attrName
+  if (attr && !(((attr.isa<::mlir::FloatAttr>())) && ((attr.cast<::mlir::FloatAttr>().getType().isF32())))) {
+    return op->emitOpError("attribute '") << attrName
         << "' failed to satisfy constraint: 32-bit float attribute";
+  }
   return ::mlir::success();
 }
-static ::llvm::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect2(
-    ::mlir::Operation *op, ::mlir::Attribute attr, ::llvm::StringRef attrName) {
-  return __mlir_ods_local_attr_constraint_DQCDialect2(attr, attrName, [op]() {
-    return op->emitOpError();
-  });
-}
 
-static ::llvm::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect3(
-    ::mlir::Attribute attr, ::llvm::StringRef attrName, llvm::function_ref<::mlir::InFlightDiagnostic()> emitError) {
-  if (attr && !((::llvm::isa<::mlir::DictionaryAttr>(attr))))
-    return emitError() << "attribute '" << attrName
+static ::mlir::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect2(
+    ::mlir::Operation *op, ::mlir::Attribute attr, ::llvm::StringRef attrName) {
+  if (attr && !((attr.isa<::mlir::DictionaryAttr>()))) {
+    return op->emitOpError("attribute '") << attrName
         << "' failed to satisfy constraint: dictionary of named attribute values";
+  }
   return ::mlir::success();
-}
-static ::llvm::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect3(
-    ::mlir::Operation *op, ::mlir::Attribute attr, ::llvm::StringRef attrName) {
-  return __mlir_ods_local_attr_constraint_DQCDialect3(attr, attrName, [op]() {
-    return op->emitOpError();
-  });
 }
 
-static ::llvm::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect4(
-    ::mlir::Attribute attr, ::llvm::StringRef attrName, llvm::function_ref<::mlir::InFlightDiagnostic()> emitError) {
-  if (attr && !(((::llvm::isa<::mlir::ArrayAttr>(attr))) && (::llvm::all_of(::llvm::cast<::mlir::ArrayAttr>(attr), [&](::mlir::Attribute attr) { return attr && (((::llvm::isa<::mlir::IntegerAttr>(attr))) && ((::llvm::cast<::mlir::IntegerAttr>(attr).getType().isSignlessInteger(32)))); }))))
-    return emitError() << "attribute '" << attrName
-        << "' failed to satisfy constraint: 32-bit integer array attribute";
-  return ::mlir::success();
-}
-static ::llvm::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect4(
+static ::mlir::LogicalResult __mlir_ods_local_attr_constraint_DQCDialect3(
     ::mlir::Operation *op, ::mlir::Attribute attr, ::llvm::StringRef attrName) {
-  return __mlir_ods_local_attr_constraint_DQCDialect4(attr, attrName, [op]() {
-    return op->emitOpError();
-  });
+  if (attr && !(((attr.isa<::mlir::ArrayAttr>())) && (::llvm::all_of(attr.cast<::mlir::ArrayAttr>(), [&](::mlir::Attribute attr) { return attr && (((attr.isa<::mlir::IntegerAttr>())) && ((attr.cast<::mlir::IntegerAttr>().getType().isSignlessInteger(32)))); })))) {
+    return op->emitOpError("attribute '") << attrName
+        << "' failed to satisfy constraint: 32-bit integer array attribute";
+  }
+  return ::mlir::success();
 }
 } // namespace dqc
 namespace dqc {
@@ -120,9 +89,21 @@ namespace dqc {
 //===----------------------------------------------------------------------===//
 
 namespace detail {
+EPRAllocOpGenericAdaptorBase::EPRAllocOpGenericAdaptorBase(::mlir::DictionaryAttr attrs, ::mlir::RegionRange regions) : odsAttrs(attrs), odsRegions(regions) {  if (odsAttrs)
+    odsOpName.emplace("dqc.epr_alloc", odsAttrs.getContext());
+}
+
+std::pair<unsigned, unsigned> EPRAllocOpGenericAdaptorBase::getODSOperandIndexAndLength(unsigned index, unsigned odsOperandsSize) {
+  return {index, 1};
+}
+
+::mlir::DictionaryAttr EPRAllocOpGenericAdaptorBase::getAttributes() {
+  return odsAttrs;
+}
+
 ::mlir::IntegerAttr EPRAllocOpGenericAdaptorBase::getSourceQpuAttr() {
   assert(odsAttrs && "no attributes when constructing adapter");
-  auto attr = ::llvm::cast<::mlir::IntegerAttr>(::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 1, EPRAllocOp::getSourceQpuAttrName(*odsOpName)));
+  auto attr = ::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 1, EPRAllocOp::getSourceQpuAttrName(*odsOpName)).cast<::mlir::IntegerAttr>();
   return attr;
 }
 
@@ -133,7 +114,7 @@ uint32_t EPRAllocOpGenericAdaptorBase::getSourceQpu() {
 
 ::mlir::IntegerAttr EPRAllocOpGenericAdaptorBase::getTargetQpuAttr() {
   assert(odsAttrs && "no attributes when constructing adapter");
-  auto attr = ::llvm::cast<::mlir::IntegerAttr>(::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 1, odsAttrs.end() - 0, EPRAllocOp::getTargetQpuAttrName(*odsOpName)));
+  auto attr = ::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 1, odsAttrs.end() - 0, EPRAllocOp::getTargetQpuAttrName(*odsOpName)).cast<::mlir::IntegerAttr>();
   return attr;
 }
 
@@ -144,7 +125,7 @@ uint32_t EPRAllocOpGenericAdaptorBase::getTargetQpu() {
 
 ::mlir::FloatAttr EPRAllocOpGenericAdaptorBase::getFidelityAttr() {
   assert(odsAttrs && "no attributes when constructing adapter");
-  auto attr = ::llvm::dyn_cast_or_null<::mlir::FloatAttr>(::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 2, EPRAllocOp::getFidelityAttrName(*odsOpName)));
+  auto attr = ::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 2, EPRAllocOp::getFidelityAttrName(*odsOpName)).dyn_cast_or_null<::mlir::FloatAttr>();
   return attr;
 }
 
@@ -154,14 +135,13 @@ uint32_t EPRAllocOpGenericAdaptorBase::getTargetQpu() {
 }
 
 } // namespace detail
-EPRAllocOpAdaptor::EPRAllocOpAdaptor(EPRAllocOp op) : EPRAllocOpGenericAdaptor(op->getOperands(), op) {}
+EPRAllocOpAdaptor::EPRAllocOpAdaptor(EPRAllocOp op) : EPRAllocOpAdaptor(op->getOperands(), op->getAttrDictionary(), op->getRegions()) {}
 
-::llvm::LogicalResult EPRAllocOpAdaptor::verify(::mlir::Location loc) {
+::mlir::LogicalResult EPRAllocOpAdaptor::verify(::mlir::Location loc) {
   auto namedAttrRange = odsAttrs;
   auto namedAttrIt = namedAttrRange.begin();
   ::mlir::Attribute tblgen_source_qpu;
   ::mlir::Attribute tblgen_fidelity;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitError(loc, "'dqc.epr_alloc' op ""requires attribute 'source_qpu'");
@@ -175,7 +155,6 @@ EPRAllocOpAdaptor::EPRAllocOpAdaptor(EPRAllocOp op) : EPRAllocOpGenericAdaptor(o
     ++namedAttrIt;
   }
   ::mlir::Attribute tblgen_target_qpu;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitError(loc, "'dqc.epr_alloc' op ""requires attribute 'target_qpu'");
@@ -186,15 +165,43 @@ EPRAllocOpAdaptor::EPRAllocOpAdaptor(EPRAllocOp op) : EPRAllocOpGenericAdaptor(o
     ++namedAttrIt;
   }
 
-  if (tblgen_source_qpu && !(((::llvm::isa<::mlir::IntegerAttr>(tblgen_source_qpu))) && ((::llvm::cast<::mlir::IntegerAttr>(tblgen_source_qpu).getType().isSignlessInteger(32)))))
+  if (tblgen_source_qpu && !(((tblgen_source_qpu.isa<::mlir::IntegerAttr>())) && ((tblgen_source_qpu.cast<::mlir::IntegerAttr>().getType().isSignlessInteger(32)))))
     return emitError(loc, "'dqc.epr_alloc' op ""attribute 'source_qpu' failed to satisfy constraint: 32-bit signless integer attribute");
 
-  if (tblgen_target_qpu && !(((::llvm::isa<::mlir::IntegerAttr>(tblgen_target_qpu))) && ((::llvm::cast<::mlir::IntegerAttr>(tblgen_target_qpu).getType().isSignlessInteger(32)))))
+  if (tblgen_target_qpu && !(((tblgen_target_qpu.isa<::mlir::IntegerAttr>())) && ((tblgen_target_qpu.cast<::mlir::IntegerAttr>().getType().isSignlessInteger(32)))))
     return emitError(loc, "'dqc.epr_alloc' op ""attribute 'target_qpu' failed to satisfy constraint: 32-bit signless integer attribute");
 
-  if (tblgen_fidelity && !(((::llvm::isa<::mlir::FloatAttr>(tblgen_fidelity))) && ((::llvm::cast<::mlir::FloatAttr>(tblgen_fidelity).getType().isF32()))))
+  if (tblgen_fidelity && !(((tblgen_fidelity.isa<::mlir::FloatAttr>())) && ((tblgen_fidelity.cast<::mlir::FloatAttr>().getType().isF32()))))
     return emitError(loc, "'dqc.epr_alloc' op ""attribute 'fidelity' failed to satisfy constraint: 32-bit float attribute");
   return ::mlir::success();
+}
+
+std::pair<unsigned, unsigned> EPRAllocOp::getODSOperandIndexAndLength(unsigned index) {
+  return {index, 1};
+}
+
+::mlir::Operation::operand_range EPRAllocOp::getODSOperands(unsigned index) {
+  auto valueRange = getODSOperandIndexAndLength(index);
+  return {std::next(getOperation()->operand_begin(), valueRange.first),
+           std::next(getOperation()->operand_begin(), valueRange.first + valueRange.second)};
+}
+
+std::pair<unsigned, unsigned> EPRAllocOp::getODSResultIndexAndLength(unsigned index) {
+  return {index, 1};
+}
+
+::mlir::Operation::result_range EPRAllocOp::getODSResults(unsigned index) {
+  auto valueRange = getODSResultIndexAndLength(index);
+  return {std::next(getOperation()->result_begin(), valueRange.first),
+           std::next(getOperation()->result_begin(), valueRange.first + valueRange.second)};
+}
+
+::mlir::Value EPRAllocOp::getEprHandle() {
+  return *getODSResults(0).begin();
+}
+
+::mlir::IntegerAttr EPRAllocOp::getSourceQpuAttr() {
+  return ::mlir::impl::getAttrFromSortedRange((*this)->getAttrs().begin() + 0, (*this)->getAttrs().end() - 1, getSourceQpuAttrName()).cast<::mlir::IntegerAttr>();
 }
 
 uint32_t EPRAllocOp::getSourceQpu() {
@@ -202,9 +209,17 @@ uint32_t EPRAllocOp::getSourceQpu() {
   return attr.getValue().getZExtValue();
 }
 
+::mlir::IntegerAttr EPRAllocOp::getTargetQpuAttr() {
+  return ::mlir::impl::getAttrFromSortedRange((*this)->getAttrs().begin() + 1, (*this)->getAttrs().end() - 0, getTargetQpuAttrName()).cast<::mlir::IntegerAttr>();
+}
+
 uint32_t EPRAllocOp::getTargetQpu() {
   auto attr = getTargetQpuAttr();
   return attr.getValue().getZExtValue();
+}
+
+::mlir::FloatAttr EPRAllocOp::getFidelityAttr() {
+  return ::mlir::impl::getAttrFromSortedRange((*this)->getAttrs().begin() + 0, (*this)->getAttrs().end() - 2, getFidelityAttrName()).dyn_cast_or_null<::mlir::FloatAttr>();
 }
 
 ::std::optional< ::llvm::APFloat > EPRAllocOp::getFidelity() {
@@ -212,18 +227,34 @@ uint32_t EPRAllocOp::getTargetQpu() {
   return attr ? ::std::optional< ::llvm::APFloat >(attr.getValue()) : (::std::nullopt);
 }
 
+void EPRAllocOp::setSourceQpuAttr(::mlir::IntegerAttr attr) {
+  (*this)->setAttr(getSourceQpuAttrName(), attr);
+}
+
 void EPRAllocOp::setSourceQpu(uint32_t attrValue) {
   (*this)->setAttr(getSourceQpuAttrName(), ::mlir::Builder((*this)->getContext()).getIntegerAttr(::mlir::Builder((*this)->getContext()).getIntegerType(32), attrValue));
+}
+
+void EPRAllocOp::setTargetQpuAttr(::mlir::IntegerAttr attr) {
+  (*this)->setAttr(getTargetQpuAttrName(), attr);
 }
 
 void EPRAllocOp::setTargetQpu(uint32_t attrValue) {
   (*this)->setAttr(getTargetQpuAttrName(), ::mlir::Builder((*this)->getContext()).getIntegerAttr(::mlir::Builder((*this)->getContext()).getIntegerType(32), attrValue));
 }
 
+void EPRAllocOp::setFidelityAttr(::mlir::FloatAttr attr) {
+  (*this)->setAttr(getFidelityAttrName(), attr);
+}
+
 void EPRAllocOp::setFidelity(::std::optional<::llvm::APFloat> attrValue) {
     if (attrValue)
       return (*this)->setAttr(getFidelityAttrName(), ::mlir::Builder((*this)->getContext()).getFloatAttr(::mlir::Builder((*this)->getContext()).getF32Type(), *attrValue));
     (*this)->removeAttr(getFidelityAttrName());
+}
+
+::mlir::Attribute EPRAllocOp::removeFidelityAttr() {
+  return (*this)->removeAttr(getFidelityAttrName());
 }
 
 void EPRAllocOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::Type epr_handle, ::mlir::IntegerAttr source_qpu, ::mlir::IntegerAttr target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
@@ -233,18 +264,6 @@ void EPRAllocOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &od
     odsState.addAttribute(getFidelityAttrName(odsState.name), fidelity);
   }
   odsState.addTypes(epr_handle);
-}
-
-EPRAllocOp EPRAllocOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::Type epr_handle, ::mlir::IntegerAttr source_qpu, ::mlir::IntegerAttr target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, epr_handle, source_qpu, target_qpu, fidelity);
-  auto __res__ = ::llvm::dyn_cast<EPRAllocOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-EPRAllocOp EPRAllocOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Type epr_handle, ::mlir::IntegerAttr source_qpu, ::mlir::IntegerAttr target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
-  return create(builder, builder.getLoc(), epr_handle, source_qpu, target_qpu, fidelity);
 }
 
 void EPRAllocOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::IntegerAttr source_qpu, ::mlir::IntegerAttr target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
@@ -257,18 +276,6 @@ void EPRAllocOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &od
   odsState.addTypes(resultTypes);
 }
 
-EPRAllocOp EPRAllocOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::IntegerAttr source_qpu, ::mlir::IntegerAttr target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, source_qpu, target_qpu, fidelity);
-  auto __res__ = ::llvm::dyn_cast<EPRAllocOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-EPRAllocOp EPRAllocOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::IntegerAttr source_qpu, ::mlir::IntegerAttr target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
-  return create(builder, builder.getLoc(), resultTypes, source_qpu, target_qpu, fidelity);
-}
-
 void EPRAllocOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::Type epr_handle, uint32_t source_qpu, uint32_t target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
   odsState.addAttribute(getSourceQpuAttrName(odsState.name), odsBuilder.getIntegerAttr(odsBuilder.getIntegerType(32), source_qpu));
   odsState.addAttribute(getTargetQpuAttrName(odsState.name), odsBuilder.getIntegerAttr(odsBuilder.getIntegerType(32), target_qpu));
@@ -276,18 +283,6 @@ void EPRAllocOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &od
     odsState.addAttribute(getFidelityAttrName(odsState.name), fidelity);
   }
   odsState.addTypes(epr_handle);
-}
-
-EPRAllocOp EPRAllocOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::Type epr_handle, uint32_t source_qpu, uint32_t target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, epr_handle, source_qpu, target_qpu, fidelity);
-  auto __res__ = ::llvm::dyn_cast<EPRAllocOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-EPRAllocOp EPRAllocOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Type epr_handle, uint32_t source_qpu, uint32_t target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
-  return create(builder, builder.getLoc(), epr_handle, source_qpu, target_qpu, fidelity);
 }
 
 void EPRAllocOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, uint32_t source_qpu, uint32_t target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
@@ -300,18 +295,6 @@ void EPRAllocOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &od
   odsState.addTypes(resultTypes);
 }
 
-EPRAllocOp EPRAllocOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, uint32_t source_qpu, uint32_t target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, source_qpu, target_qpu, fidelity);
-  auto __res__ = ::llvm::dyn_cast<EPRAllocOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-EPRAllocOp EPRAllocOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, uint32_t source_qpu, uint32_t target_qpu, /*optional*/::mlir::FloatAttr fidelity) {
-  return create(builder, builder.getLoc(), resultTypes, source_qpu, target_qpu, fidelity);
-}
-
 void EPRAllocOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
   assert(operands.size() == 0u && "mismatched number of parameters");
   odsState.addOperands(operands);
@@ -320,24 +303,11 @@ void EPRAllocOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, ::
   odsState.addTypes(resultTypes);
 }
 
-EPRAllocOp EPRAllocOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, operands, attributes);
-  auto __res__ = ::llvm::dyn_cast<EPRAllocOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-EPRAllocOp EPRAllocOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  return create(builder, builder.getLoc(), resultTypes, operands, attributes);
-}
-
-::llvm::LogicalResult EPRAllocOp::verifyInvariantsImpl() {
+::mlir::LogicalResult EPRAllocOp::verifyInvariantsImpl() {
   auto namedAttrRange = (*this)->getAttrs();
   auto namedAttrIt = namedAttrRange.begin();
   ::mlir::Attribute tblgen_source_qpu;
   ::mlir::Attribute tblgen_fidelity;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitOpError("requires attribute 'source_qpu'");
@@ -351,7 +321,6 @@ EPRAllocOp EPRAllocOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Typ
     ++namedAttrIt;
   }
   ::mlir::Attribute tblgen_target_qpu;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitOpError("requires attribute 'target_qpu'");
@@ -362,27 +331,27 @@ EPRAllocOp EPRAllocOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Typ
     ++namedAttrIt;
   }
 
-  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect1(*this, tblgen_source_qpu, "source_qpu")))
+  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect0(*this, tblgen_source_qpu, "source_qpu")))
     return ::mlir::failure();
 
-  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect1(*this, tblgen_target_qpu, "target_qpu")))
+  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect0(*this, tblgen_target_qpu, "target_qpu")))
     return ::mlir::failure();
 
-  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect2(*this, tblgen_fidelity, "fidelity")))
+  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect1(*this, tblgen_fidelity, "fidelity")))
     return ::mlir::failure();
   {
     unsigned index = 0; (void)index;
     auto valueGroup0 = getODSResults(0);
 
     for (auto v : valueGroup0) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "result", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect0(*this, v.getType(), "result", index++)))
         return ::mlir::failure();
     }
   }
   return ::mlir::success();
 }
 
-::llvm::LogicalResult EPRAllocOp::verifyInvariants() {
+::mlir::LogicalResult EPRAllocOp::verifyInvariants() {
   return verifyInvariantsImpl();
 }
 
@@ -391,22 +360,19 @@ EPRAllocOp EPRAllocOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Typ
   ::mlir::IntegerAttr target_qpuAttr;
   ::llvm::SmallVector<::mlir::Type, 1> allResultTypes;
 
-  if (parser.parseCustomAttributeWithFallback(source_qpuAttr, parser.getBuilder().getIntegerType(32))) {
+  if (parser.parseCustomAttributeWithFallback(source_qpuAttr, parser.getBuilder().getIntegerType(32), "source_qpu",
+          result.attributes)) {
     return ::mlir::failure();
   }
-  if (source_qpuAttr) result.attributes.append("source_qpu", source_qpuAttr);
   if (parser.parseComma())
     return ::mlir::failure();
 
-  if (parser.parseCustomAttributeWithFallback(target_qpuAttr, parser.getBuilder().getIntegerType(32))) {
+  if (parser.parseCustomAttributeWithFallback(target_qpuAttr, parser.getBuilder().getIntegerType(32), "target_qpu",
+          result.attributes)) {
     return ::mlir::failure();
   }
-  if (target_qpuAttr) result.attributes.append("target_qpu", target_qpuAttr);
-  {
-    auto loc = parser.getCurrentLocation();(void)loc;
-    if (parser.parseOptionalAttrDict(result.attributes))
-      return ::mlir::failure();
-  }
+  if (parser.parseOptionalAttrDict(result.attributes))
+    return ::mlir::failure();
   if (parser.parseColon())
     return ::mlir::failure();
 
@@ -444,45 +410,63 @@ namespace dqc {
 //===----------------------------------------------------------------------===//
 
 namespace detail {
-} // namespace detail
-EPRConsumeOpAdaptor::EPRConsumeOpAdaptor(EPRConsumeOp op) : EPRConsumeOpGenericAdaptor(op->getOperands(), op) {}
+EPRConsumeOpGenericAdaptorBase::EPRConsumeOpGenericAdaptorBase(::mlir::DictionaryAttr attrs, ::mlir::RegionRange regions) : odsAttrs(attrs), odsRegions(regions) {  if (odsAttrs)
+    odsOpName.emplace("dqc.epr_consume", odsAttrs.getContext());
+}
 
-::llvm::LogicalResult EPRConsumeOpAdaptor::verify(::mlir::Location loc) {
+std::pair<unsigned, unsigned> EPRConsumeOpGenericAdaptorBase::getODSOperandIndexAndLength(unsigned index, unsigned odsOperandsSize) {
+  return {index, 1};
+}
+
+::mlir::DictionaryAttr EPRConsumeOpGenericAdaptorBase::getAttributes() {
+  return odsAttrs;
+}
+
+} // namespace detail
+EPRConsumeOpAdaptor::EPRConsumeOpAdaptor(EPRConsumeOp op) : EPRConsumeOpAdaptor(op->getOperands(), op->getAttrDictionary(), op->getRegions()) {}
+
+::mlir::LogicalResult EPRConsumeOpAdaptor::verify(::mlir::Location loc) {
   return ::mlir::success();
+}
+
+std::pair<unsigned, unsigned> EPRConsumeOp::getODSOperandIndexAndLength(unsigned index) {
+  return {index, 1};
+}
+
+::mlir::Operation::operand_range EPRConsumeOp::getODSOperands(unsigned index) {
+  auto valueRange = getODSOperandIndexAndLength(index);
+  return {std::next(getOperation()->operand_begin(), valueRange.first),
+           std::next(getOperation()->operand_begin(), valueRange.first + valueRange.second)};
+}
+
+::mlir::Value EPRConsumeOp::getEprHandle() {
+  return *getODSOperands(0).begin();
+}
+
+::mlir::MutableOperandRange EPRConsumeOp::getEprHandleMutable() {
+  auto range = getODSOperandIndexAndLength(0);
+  auto mutableRange = ::mlir::MutableOperandRange(getOperation(), range.first, range.second);
+  return mutableRange;
+}
+
+std::pair<unsigned, unsigned> EPRConsumeOp::getODSResultIndexAndLength(unsigned index) {
+  return {index, 1};
+}
+
+::mlir::Operation::result_range EPRConsumeOp::getODSResults(unsigned index) {
+  auto valueRange = getODSResultIndexAndLength(index);
+  return {std::next(getOperation()->result_begin(), valueRange.first),
+           std::next(getOperation()->result_begin(), valueRange.first + valueRange.second)};
 }
 
 void EPRConsumeOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::Value epr_handle) {
   odsState.addOperands(epr_handle);
 }
 
-EPRConsumeOp EPRConsumeOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::Value epr_handle) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, epr_handle);
-  auto __res__ = ::llvm::dyn_cast<EPRConsumeOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-EPRConsumeOp EPRConsumeOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Value epr_handle) {
-  return create(builder, builder.getLoc(), epr_handle);
-}
-
 void EPRConsumeOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::Value epr_handle) {
   odsState.addOperands(epr_handle);
   assert(resultTypes.size() == 0u && "mismatched number of results");
   odsState.addTypes(resultTypes);
-}
-
-EPRConsumeOp EPRConsumeOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::Value epr_handle) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, epr_handle);
-  auto __res__ = ::llvm::dyn_cast<EPRConsumeOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-EPRConsumeOp EPRConsumeOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::Value epr_handle) {
-  return create(builder, builder.getLoc(), resultTypes, epr_handle);
 }
 
 void EPRConsumeOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
@@ -493,49 +477,34 @@ void EPRConsumeOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, 
   odsState.addTypes(resultTypes);
 }
 
-EPRConsumeOp EPRConsumeOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, operands, attributes);
-  auto __res__ = ::llvm::dyn_cast<EPRConsumeOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-EPRConsumeOp EPRConsumeOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  return create(builder, builder.getLoc(), resultTypes, operands, attributes);
-}
-
-::llvm::LogicalResult EPRConsumeOp::verifyInvariantsImpl() {
+::mlir::LogicalResult EPRConsumeOp::verifyInvariantsImpl() {
   {
     unsigned index = 0; (void)index;
     auto valueGroup0 = getODSOperands(0);
 
     for (auto v : valueGroup0) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "operand", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect0(*this, v.getType(), "operand", index++)))
         return ::mlir::failure();
     }
   }
   return ::mlir::success();
 }
 
-::llvm::LogicalResult EPRConsumeOp::verifyInvariants() {
+::mlir::LogicalResult EPRConsumeOp::verifyInvariants() {
   return verifyInvariantsImpl();
 }
 
 ::mlir::ParseResult EPRConsumeOp::parse(::mlir::OpAsmParser &parser, ::mlir::OperationState &result) {
-  ::mlir::OpAsmParser::UnresolvedOperand epr_handleRawOperand{};
-  ::llvm::ArrayRef<::mlir::OpAsmParser::UnresolvedOperand> epr_handleOperands(&epr_handleRawOperand, 1);  ::llvm::SMLoc epr_handleOperandsLoc;
+  ::mlir::OpAsmParser::UnresolvedOperand epr_handleRawOperands[1];
+  ::llvm::ArrayRef<::mlir::OpAsmParser::UnresolvedOperand> epr_handleOperands(epr_handleRawOperands);  ::llvm::SMLoc epr_handleOperandsLoc;
   (void)epr_handleOperandsLoc;
   ::llvm::SmallVector<::mlir::Type, 1> allOperandTypes;
 
   epr_handleOperandsLoc = parser.getCurrentLocation();
-  if (parser.parseOperand(epr_handleRawOperand))
+  if (parser.parseOperand(epr_handleRawOperands[0]))
     return ::mlir::failure();
-  {
-    auto loc = parser.getCurrentLocation();(void)loc;
-    if (parser.parseOptionalAttrDict(result.attributes))
-      return ::mlir::failure();
-  }
+  if (parser.parseOptionalAttrDict(result.attributes))
+    return ::mlir::failure();
   if (parser.parseColon())
     return ::mlir::failure();
 
@@ -566,9 +535,21 @@ namespace dqc {
 //===----------------------------------------------------------------------===//
 
 namespace detail {
+PartitionInfoOpGenericAdaptorBase::PartitionInfoOpGenericAdaptorBase(::mlir::DictionaryAttr attrs, ::mlir::RegionRange regions) : odsAttrs(attrs), odsRegions(regions) {  if (odsAttrs)
+    odsOpName.emplace("dqc.partition_info", odsAttrs.getContext());
+}
+
+std::pair<unsigned, unsigned> PartitionInfoOpGenericAdaptorBase::getODSOperandIndexAndLength(unsigned index, unsigned odsOperandsSize) {
+  return {index, 1};
+}
+
+::mlir::DictionaryAttr PartitionInfoOpGenericAdaptorBase::getAttributes() {
+  return odsAttrs;
+}
+
 ::mlir::DictionaryAttr PartitionInfoOpGenericAdaptorBase::getPartitionMapAttr() {
   assert(odsAttrs && "no attributes when constructing adapter");
-  auto attr = ::llvm::cast<::mlir::DictionaryAttr>(::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 0, PartitionInfoOp::getPartitionMapAttrName(*odsOpName)));
+  auto attr = ::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 0, PartitionInfoOp::getPartitionMapAttrName(*odsOpName)).cast<::mlir::DictionaryAttr>();
   return attr;
 }
 
@@ -578,13 +559,12 @@ namespace detail {
 }
 
 } // namespace detail
-PartitionInfoOpAdaptor::PartitionInfoOpAdaptor(PartitionInfoOp op) : PartitionInfoOpGenericAdaptor(op->getOperands(), op) {}
+PartitionInfoOpAdaptor::PartitionInfoOpAdaptor(PartitionInfoOp op) : PartitionInfoOpAdaptor(op->getOperands(), op->getAttrDictionary(), op->getRegions()) {}
 
-::llvm::LogicalResult PartitionInfoOpAdaptor::verify(::mlir::Location loc) {
+::mlir::LogicalResult PartitionInfoOpAdaptor::verify(::mlir::Location loc) {
   auto namedAttrRange = odsAttrs;
   auto namedAttrIt = namedAttrRange.begin();
   ::mlir::Attribute tblgen_partition_map;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitError(loc, "'dqc.partition_info' op ""requires attribute 'partition_map'");
@@ -595,9 +575,33 @@ PartitionInfoOpAdaptor::PartitionInfoOpAdaptor(PartitionInfoOp op) : PartitionIn
     ++namedAttrIt;
   }
 
-  if (tblgen_partition_map && !((::llvm::isa<::mlir::DictionaryAttr>(tblgen_partition_map))))
+  if (tblgen_partition_map && !((tblgen_partition_map.isa<::mlir::DictionaryAttr>())))
     return emitError(loc, "'dqc.partition_info' op ""attribute 'partition_map' failed to satisfy constraint: dictionary of named attribute values");
   return ::mlir::success();
+}
+
+std::pair<unsigned, unsigned> PartitionInfoOp::getODSOperandIndexAndLength(unsigned index) {
+  return {index, 1};
+}
+
+::mlir::Operation::operand_range PartitionInfoOp::getODSOperands(unsigned index) {
+  auto valueRange = getODSOperandIndexAndLength(index);
+  return {std::next(getOperation()->operand_begin(), valueRange.first),
+           std::next(getOperation()->operand_begin(), valueRange.first + valueRange.second)};
+}
+
+std::pair<unsigned, unsigned> PartitionInfoOp::getODSResultIndexAndLength(unsigned index) {
+  return {index, 1};
+}
+
+::mlir::Operation::result_range PartitionInfoOp::getODSResults(unsigned index) {
+  auto valueRange = getODSResultIndexAndLength(index);
+  return {std::next(getOperation()->result_begin(), valueRange.first),
+           std::next(getOperation()->result_begin(), valueRange.first + valueRange.second)};
+}
+
+::mlir::DictionaryAttr PartitionInfoOp::getPartitionMapAttr() {
+  return ::mlir::impl::getAttrFromSortedRange((*this)->getAttrs().begin() + 0, (*this)->getAttrs().end() - 0, getPartitionMapAttrName()).cast<::mlir::DictionaryAttr>();
 }
 
 ::mlir::DictionaryAttr PartitionInfoOp::getPartitionMap() {
@@ -605,38 +609,18 @@ PartitionInfoOpAdaptor::PartitionInfoOpAdaptor(PartitionInfoOp op) : PartitionIn
   return attr;
 }
 
+void PartitionInfoOp::setPartitionMapAttr(::mlir::DictionaryAttr attr) {
+  (*this)->setAttr(getPartitionMapAttrName(), attr);
+}
+
 void PartitionInfoOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::DictionaryAttr partition_map) {
   odsState.addAttribute(getPartitionMapAttrName(odsState.name), partition_map);
-}
-
-PartitionInfoOp PartitionInfoOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::DictionaryAttr partition_map) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, partition_map);
-  auto __res__ = ::llvm::dyn_cast<PartitionInfoOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-PartitionInfoOp PartitionInfoOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::DictionaryAttr partition_map) {
-  return create(builder, builder.getLoc(), partition_map);
 }
 
 void PartitionInfoOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::DictionaryAttr partition_map) {
   odsState.addAttribute(getPartitionMapAttrName(odsState.name), partition_map);
   assert(resultTypes.size() == 0u && "mismatched number of results");
   odsState.addTypes(resultTypes);
-}
-
-PartitionInfoOp PartitionInfoOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::DictionaryAttr partition_map) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, partition_map);
-  auto __res__ = ::llvm::dyn_cast<PartitionInfoOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-PartitionInfoOp PartitionInfoOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::DictionaryAttr partition_map) {
-  return create(builder, builder.getLoc(), resultTypes, partition_map);
 }
 
 void PartitionInfoOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
@@ -647,23 +631,10 @@ void PartitionInfoOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsStat
   odsState.addTypes(resultTypes);
 }
 
-PartitionInfoOp PartitionInfoOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, operands, attributes);
-  auto __res__ = ::llvm::dyn_cast<PartitionInfoOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-PartitionInfoOp PartitionInfoOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  return create(builder, builder.getLoc(), resultTypes, operands, attributes);
-}
-
-::llvm::LogicalResult PartitionInfoOp::verifyInvariantsImpl() {
+::mlir::LogicalResult PartitionInfoOp::verifyInvariantsImpl() {
   auto namedAttrRange = (*this)->getAttrs();
   auto namedAttrIt = namedAttrRange.begin();
   ::mlir::Attribute tblgen_partition_map;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitOpError("requires attribute 'partition_map'");
@@ -674,21 +645,18 @@ PartitionInfoOp PartitionInfoOp::create(::mlir::ImplicitLocOpBuilder &builder, :
     ++namedAttrIt;
   }
 
-  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect3(*this, tblgen_partition_map, "partition_map")))
+  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect2(*this, tblgen_partition_map, "partition_map")))
     return ::mlir::failure();
   return ::mlir::success();
 }
 
-::llvm::LogicalResult PartitionInfoOp::verifyInvariants() {
+::mlir::LogicalResult PartitionInfoOp::verifyInvariants() {
   return verifyInvariantsImpl();
 }
 
 ::mlir::ParseResult PartitionInfoOp::parse(::mlir::OpAsmParser &parser, ::mlir::OperationState &result) {
-  {
-    auto loc = parser.getCurrentLocation();(void)loc;
-    if (parser.parseOptionalAttrDict(result.attributes))
-      return ::mlir::failure();
-  }
+  if (parser.parseOptionalAttrDict(result.attributes))
+    return ::mlir::failure();
   return ::mlir::success();
 }
 
@@ -710,6 +678,10 @@ namespace dqc {
 //===----------------------------------------------------------------------===//
 
 namespace detail {
+TeleGateMultiOpGenericAdaptorBase::TeleGateMultiOpGenericAdaptorBase(::mlir::DictionaryAttr attrs, ::mlir::RegionRange regions) : odsAttrs(attrs), odsRegions(regions) {  if (odsAttrs)
+    odsOpName.emplace("dqc.telegate_multi", odsAttrs.getContext());
+}
+
 std::pair<unsigned, unsigned> TeleGateMultiOpGenericAdaptorBase::getODSOperandIndexAndLength(unsigned index, unsigned odsOperandsSize) {
   bool isVariadic[] = {false, true, false};
   int prevVariadicCount = 0;
@@ -728,9 +700,13 @@ std::pair<unsigned, unsigned> TeleGateMultiOpGenericAdaptorBase::getODSOperandIn
   return {start, size};
 }
 
+::mlir::DictionaryAttr TeleGateMultiOpGenericAdaptorBase::getAttributes() {
+  return odsAttrs;
+}
+
 ::mlir::IntegerAttr TeleGateMultiOpGenericAdaptorBase::getControlQpuAttr() {
   assert(odsAttrs && "no attributes when constructing adapter");
-  auto attr = ::llvm::cast<::mlir::IntegerAttr>(::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 1, TeleGateMultiOp::getControlQpuAttrName(*odsOpName)));
+  auto attr = ::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 1, TeleGateMultiOp::getControlQpuAttrName(*odsOpName)).cast<::mlir::IntegerAttr>();
   return attr;
 }
 
@@ -741,7 +717,7 @@ uint32_t TeleGateMultiOpGenericAdaptorBase::getControlQpu() {
 
 ::mlir::ArrayAttr TeleGateMultiOpGenericAdaptorBase::getTargetQpusAttr() {
   assert(odsAttrs && "no attributes when constructing adapter");
-  auto attr = ::llvm::cast<::mlir::ArrayAttr>(::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 1, odsAttrs.end() - 0, TeleGateMultiOp::getTargetQpusAttrName(*odsOpName)));
+  auto attr = ::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 1, odsAttrs.end() - 0, TeleGateMultiOp::getTargetQpusAttrName(*odsOpName)).cast<::mlir::ArrayAttr>();
   return attr;
 }
 
@@ -751,13 +727,12 @@ uint32_t TeleGateMultiOpGenericAdaptorBase::getControlQpu() {
 }
 
 } // namespace detail
-TeleGateMultiOpAdaptor::TeleGateMultiOpAdaptor(TeleGateMultiOp op) : TeleGateMultiOpGenericAdaptor(op->getOperands(), op) {}
+TeleGateMultiOpAdaptor::TeleGateMultiOpAdaptor(TeleGateMultiOp op) : TeleGateMultiOpAdaptor(op->getOperands(), op->getAttrDictionary(), op->getRegions()) {}
 
-::llvm::LogicalResult TeleGateMultiOpAdaptor::verify(::mlir::Location loc) {
+::mlir::LogicalResult TeleGateMultiOpAdaptor::verify(::mlir::Location loc) {
   auto namedAttrRange = odsAttrs;
   auto namedAttrIt = namedAttrRange.begin();
   ::mlir::Attribute tblgen_control_qpu;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitError(loc, "'dqc.telegate_multi' op ""requires attribute 'control_qpu'");
@@ -768,7 +743,6 @@ TeleGateMultiOpAdaptor::TeleGateMultiOpAdaptor(TeleGateMultiOp op) : TeleGateMul
     ++namedAttrIt;
   }
   ::mlir::Attribute tblgen_target_qpus;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitError(loc, "'dqc.telegate_multi' op ""requires attribute 'target_qpus'");
@@ -779,10 +753,10 @@ TeleGateMultiOpAdaptor::TeleGateMultiOpAdaptor(TeleGateMultiOp op) : TeleGateMul
     ++namedAttrIt;
   }
 
-  if (tblgen_control_qpu && !(((::llvm::isa<::mlir::IntegerAttr>(tblgen_control_qpu))) && ((::llvm::cast<::mlir::IntegerAttr>(tblgen_control_qpu).getType().isSignlessInteger(32)))))
+  if (tblgen_control_qpu && !(((tblgen_control_qpu.isa<::mlir::IntegerAttr>())) && ((tblgen_control_qpu.cast<::mlir::IntegerAttr>().getType().isSignlessInteger(32)))))
     return emitError(loc, "'dqc.telegate_multi' op ""attribute 'control_qpu' failed to satisfy constraint: 32-bit signless integer attribute");
 
-  if (tblgen_target_qpus && !(((::llvm::isa<::mlir::ArrayAttr>(tblgen_target_qpus))) && (::llvm::all_of(::llvm::cast<::mlir::ArrayAttr>(tblgen_target_qpus), [&](::mlir::Attribute attr) { return attr && (((::llvm::isa<::mlir::IntegerAttr>(attr))) && ((::llvm::cast<::mlir::IntegerAttr>(attr).getType().isSignlessInteger(32)))); }))))
+  if (tblgen_target_qpus && !(((tblgen_target_qpus.isa<::mlir::ArrayAttr>())) && (::llvm::all_of(tblgen_target_qpus.cast<::mlir::ArrayAttr>(), [&](::mlir::Attribute attr) { return attr && (((attr.isa<::mlir::IntegerAttr>())) && ((attr.cast<::mlir::IntegerAttr>().getType().isSignlessInteger(32)))); }))))
     return emitError(loc, "'dqc.telegate_multi' op ""attribute 'target_qpus' failed to satisfy constraint: 32-bit integer array attribute");
   return ::mlir::success();
 }
@@ -805,8 +779,38 @@ std::pair<unsigned, unsigned> TeleGateMultiOp::getODSOperandIndexAndLength(unsig
   return {start, size};
 }
 
+::mlir::Operation::operand_range TeleGateMultiOp::getODSOperands(unsigned index) {
+  auto valueRange = getODSOperandIndexAndLength(index);
+  return {std::next(getOperation()->operand_begin(), valueRange.first),
+           std::next(getOperation()->operand_begin(), valueRange.first + valueRange.second)};
+}
+
+::mlir::Value TeleGateMultiOp::getControlQubit() {
+  return *getODSOperands(0).begin();
+}
+
+::mlir::Operation::operand_range TeleGateMultiOp::getTargetQubits() {
+  return getODSOperands(1);
+}
+
+::mlir::Value TeleGateMultiOp::getEprHandle() {
+  return *getODSOperands(2).begin();
+}
+
+::mlir::MutableOperandRange TeleGateMultiOp::getControlQubitMutable() {
+  auto range = getODSOperandIndexAndLength(0);
+  auto mutableRange = ::mlir::MutableOperandRange(getOperation(), range.first, range.second);
+  return mutableRange;
+}
+
 ::mlir::MutableOperandRange TeleGateMultiOp::getTargetQubitsMutable() {
   auto range = getODSOperandIndexAndLength(1);
+  auto mutableRange = ::mlir::MutableOperandRange(getOperation(), range.first, range.second);
+  return mutableRange;
+}
+
+::mlir::MutableOperandRange TeleGateMultiOp::getEprHandleMutable() {
+  auto range = getODSOperandIndexAndLength(2);
   auto mutableRange = ::mlir::MutableOperandRange(getOperation(), range.first, range.second);
   return mutableRange;
 }
@@ -829,9 +833,27 @@ std::pair<unsigned, unsigned> TeleGateMultiOp::getODSResultIndexAndLength(unsign
   return {start, size};
 }
 
+::mlir::Operation::result_range TeleGateMultiOp::getODSResults(unsigned index) {
+  auto valueRange = getODSResultIndexAndLength(index);
+  return {std::next(getOperation()->result_begin(), valueRange.first),
+           std::next(getOperation()->result_begin(), valueRange.first + valueRange.second)};
+}
+
+::mlir::Operation::result_range TeleGateMultiOp::getResults() {
+  return getODSResults(0);
+}
+
+::mlir::IntegerAttr TeleGateMultiOp::getControlQpuAttr() {
+  return ::mlir::impl::getAttrFromSortedRange((*this)->getAttrs().begin() + 0, (*this)->getAttrs().end() - 1, getControlQpuAttrName()).cast<::mlir::IntegerAttr>();
+}
+
 uint32_t TeleGateMultiOp::getControlQpu() {
   auto attr = getControlQpuAttr();
   return attr.getValue().getZExtValue();
+}
+
+::mlir::ArrayAttr TeleGateMultiOp::getTargetQpusAttr() {
+  return ::mlir::impl::getAttrFromSortedRange((*this)->getAttrs().begin() + 1, (*this)->getAttrs().end() - 0, getTargetQpusAttrName()).cast<::mlir::ArrayAttr>();
 }
 
 ::mlir::ArrayAttr TeleGateMultiOp::getTargetQpus() {
@@ -839,8 +861,16 @@ uint32_t TeleGateMultiOp::getControlQpu() {
   return attr;
 }
 
+void TeleGateMultiOp::setControlQpuAttr(::mlir::IntegerAttr attr) {
+  (*this)->setAttr(getControlQpuAttrName(), attr);
+}
+
 void TeleGateMultiOp::setControlQpu(uint32_t attrValue) {
   (*this)->setAttr(getControlQpuAttrName(), ::mlir::Builder((*this)->getContext()).getIntegerAttr(::mlir::Builder((*this)->getContext()).getIntegerType(32), attrValue));
+}
+
+void TeleGateMultiOp::setTargetQpusAttr(::mlir::ArrayAttr attr) {
+  (*this)->setAttr(getTargetQpusAttrName(), attr);
 }
 
 void TeleGateMultiOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::TypeRange results, ::mlir::Value control_qubit, ::mlir::ValueRange target_qubits, ::mlir::Value epr_handle, ::mlir::IntegerAttr control_qpu, ::mlir::ArrayAttr target_qpus) {
@@ -852,18 +882,6 @@ void TeleGateMultiOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationStat
   odsState.addTypes(results);
 }
 
-TeleGateMultiOp TeleGateMultiOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange results, ::mlir::Value control_qubit, ::mlir::ValueRange target_qubits, ::mlir::Value epr_handle, ::mlir::IntegerAttr control_qpu, ::mlir::ArrayAttr target_qpus) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, results, control_qubit, target_qubits, epr_handle, control_qpu, target_qpus);
-  auto __res__ = ::llvm::dyn_cast<TeleGateMultiOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-TeleGateMultiOp TeleGateMultiOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange results, ::mlir::Value control_qubit, ::mlir::ValueRange target_qubits, ::mlir::Value epr_handle, ::mlir::IntegerAttr control_qpu, ::mlir::ArrayAttr target_qpus) {
-  return create(builder, builder.getLoc(), results, control_qubit, target_qubits, epr_handle, control_qpu, target_qpus);
-}
-
 void TeleGateMultiOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::TypeRange results, ::mlir::Value control_qubit, ::mlir::ValueRange target_qubits, ::mlir::Value epr_handle, uint32_t control_qpu, ::mlir::ArrayAttr target_qpus) {
   odsState.addOperands(control_qubit);
   odsState.addOperands(target_qubits);
@@ -873,18 +891,6 @@ void TeleGateMultiOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationStat
   odsState.addTypes(results);
 }
 
-TeleGateMultiOp TeleGateMultiOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange results, ::mlir::Value control_qubit, ::mlir::ValueRange target_qubits, ::mlir::Value epr_handle, uint32_t control_qpu, ::mlir::ArrayAttr target_qpus) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, results, control_qubit, target_qubits, epr_handle, control_qpu, target_qpus);
-  auto __res__ = ::llvm::dyn_cast<TeleGateMultiOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-TeleGateMultiOp TeleGateMultiOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange results, ::mlir::Value control_qubit, ::mlir::ValueRange target_qubits, ::mlir::Value epr_handle, uint32_t control_qpu, ::mlir::ArrayAttr target_qpus) {
-  return create(builder, builder.getLoc(), results, control_qubit, target_qubits, epr_handle, control_qpu, target_qpus);
-}
-
 void TeleGateMultiOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
   assert(operands.size() >= 2u && "mismatched number of parameters");
   odsState.addOperands(operands);
@@ -892,23 +898,10 @@ void TeleGateMultiOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsStat
   odsState.addTypes(resultTypes);
 }
 
-TeleGateMultiOp TeleGateMultiOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, operands, attributes);
-  auto __res__ = ::llvm::dyn_cast<TeleGateMultiOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-TeleGateMultiOp TeleGateMultiOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  return create(builder, builder.getLoc(), resultTypes, operands, attributes);
-}
-
-::llvm::LogicalResult TeleGateMultiOp::verifyInvariantsImpl() {
+::mlir::LogicalResult TeleGateMultiOp::verifyInvariantsImpl() {
   auto namedAttrRange = (*this)->getAttrs();
   auto namedAttrIt = namedAttrRange.begin();
   ::mlir::Attribute tblgen_control_qpu;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitOpError("requires attribute 'control_qpu'");
@@ -919,7 +912,6 @@ TeleGateMultiOp TeleGateMultiOp::create(::mlir::ImplicitLocOpBuilder &builder, :
     ++namedAttrIt;
   }
   ::mlir::Attribute tblgen_target_qpus;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitOpError("requires attribute 'target_qpus'");
@@ -930,29 +922,29 @@ TeleGateMultiOp TeleGateMultiOp::create(::mlir::ImplicitLocOpBuilder &builder, :
     ++namedAttrIt;
   }
 
-  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect1(*this, tblgen_control_qpu, "control_qpu")))
+  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect0(*this, tblgen_control_qpu, "control_qpu")))
     return ::mlir::failure();
 
-  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect4(*this, tblgen_target_qpus, "target_qpus")))
+  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect3(*this, tblgen_target_qpus, "target_qpus")))
     return ::mlir::failure();
   {
     unsigned index = 0; (void)index;
     auto valueGroup0 = getODSOperands(0);
 
     for (auto v : valueGroup0) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect2(*this, v.getType(), "operand", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "operand", index++)))
         return ::mlir::failure();
     }
     auto valueGroup1 = getODSOperands(1);
 
     for (auto v : valueGroup1) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect3(*this, v.getType(), "operand", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "operand", index++)))
         return ::mlir::failure();
     }
     auto valueGroup2 = getODSOperands(2);
 
     for (auto v : valueGroup2) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "operand", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect0(*this, v.getType(), "operand", index++)))
         return ::mlir::failure();
     }
   }
@@ -961,14 +953,14 @@ TeleGateMultiOp TeleGateMultiOp::create(::mlir::ImplicitLocOpBuilder &builder, :
     auto valueGroup0 = getODSResults(0);
 
     for (auto v : valueGroup0) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect3(*this, v.getType(), "result", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "result", index++)))
         return ::mlir::failure();
     }
   }
   return ::mlir::success();
 }
 
-::llvm::LogicalResult TeleGateMultiOp::verifyInvariants() {
+::mlir::LogicalResult TeleGateMultiOp::verifyInvariants() {
   return verifyInvariantsImpl();
 }
 
@@ -982,9 +974,21 @@ namespace dqc {
 //===----------------------------------------------------------------------===//
 
 namespace detail {
+TeleGateOpGenericAdaptorBase::TeleGateOpGenericAdaptorBase(::mlir::DictionaryAttr attrs, ::mlir::RegionRange regions) : odsAttrs(attrs), odsRegions(regions) {  if (odsAttrs)
+    odsOpName.emplace("dqc.telegate", odsAttrs.getContext());
+}
+
+std::pair<unsigned, unsigned> TeleGateOpGenericAdaptorBase::getODSOperandIndexAndLength(unsigned index, unsigned odsOperandsSize) {
+  return {index, 1};
+}
+
+::mlir::DictionaryAttr TeleGateOpGenericAdaptorBase::getAttributes() {
+  return odsAttrs;
+}
+
 ::mlir::IntegerAttr TeleGateOpGenericAdaptorBase::getControlQpuAttr() {
   assert(odsAttrs && "no attributes when constructing adapter");
-  auto attr = ::llvm::cast<::mlir::IntegerAttr>(::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 1, TeleGateOp::getControlQpuAttrName(*odsOpName)));
+  auto attr = ::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 0, odsAttrs.end() - 1, TeleGateOp::getControlQpuAttrName(*odsOpName)).cast<::mlir::IntegerAttr>();
   return attr;
 }
 
@@ -995,7 +999,7 @@ uint32_t TeleGateOpGenericAdaptorBase::getControlQpu() {
 
 ::mlir::IntegerAttr TeleGateOpGenericAdaptorBase::getTargetQpuAttr() {
   assert(odsAttrs && "no attributes when constructing adapter");
-  auto attr = ::llvm::cast<::mlir::IntegerAttr>(::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 1, odsAttrs.end() - 0, TeleGateOp::getTargetQpuAttrName(*odsOpName)));
+  auto attr = ::mlir::impl::getAttrFromSortedRange(odsAttrs.begin() + 1, odsAttrs.end() - 0, TeleGateOp::getTargetQpuAttrName(*odsOpName)).cast<::mlir::IntegerAttr>();
   return attr;
 }
 
@@ -1005,13 +1009,12 @@ uint32_t TeleGateOpGenericAdaptorBase::getTargetQpu() {
 }
 
 } // namespace detail
-TeleGateOpAdaptor::TeleGateOpAdaptor(TeleGateOp op) : TeleGateOpGenericAdaptor(op->getOperands(), op) {}
+TeleGateOpAdaptor::TeleGateOpAdaptor(TeleGateOp op) : TeleGateOpAdaptor(op->getOperands(), op->getAttrDictionary(), op->getRegions()) {}
 
-::llvm::LogicalResult TeleGateOpAdaptor::verify(::mlir::Location loc) {
+::mlir::LogicalResult TeleGateOpAdaptor::verify(::mlir::Location loc) {
   auto namedAttrRange = odsAttrs;
   auto namedAttrIt = namedAttrRange.begin();
   ::mlir::Attribute tblgen_control_qpu;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitError(loc, "'dqc.telegate' op ""requires attribute 'control_qpu'");
@@ -1022,7 +1025,6 @@ TeleGateOpAdaptor::TeleGateOpAdaptor(TeleGateOp op) : TeleGateOpGenericAdaptor(o
     ++namedAttrIt;
   }
   ::mlir::Attribute tblgen_target_qpu;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitError(loc, "'dqc.telegate' op ""requires attribute 'target_qpu'");
@@ -1033,12 +1035,70 @@ TeleGateOpAdaptor::TeleGateOpAdaptor(TeleGateOp op) : TeleGateOpGenericAdaptor(o
     ++namedAttrIt;
   }
 
-  if (tblgen_control_qpu && !(((::llvm::isa<::mlir::IntegerAttr>(tblgen_control_qpu))) && ((::llvm::cast<::mlir::IntegerAttr>(tblgen_control_qpu).getType().isSignlessInteger(32)))))
+  if (tblgen_control_qpu && !(((tblgen_control_qpu.isa<::mlir::IntegerAttr>())) && ((tblgen_control_qpu.cast<::mlir::IntegerAttr>().getType().isSignlessInteger(32)))))
     return emitError(loc, "'dqc.telegate' op ""attribute 'control_qpu' failed to satisfy constraint: 32-bit signless integer attribute");
 
-  if (tblgen_target_qpu && !(((::llvm::isa<::mlir::IntegerAttr>(tblgen_target_qpu))) && ((::llvm::cast<::mlir::IntegerAttr>(tblgen_target_qpu).getType().isSignlessInteger(32)))))
+  if (tblgen_target_qpu && !(((tblgen_target_qpu.isa<::mlir::IntegerAttr>())) && ((tblgen_target_qpu.cast<::mlir::IntegerAttr>().getType().isSignlessInteger(32)))))
     return emitError(loc, "'dqc.telegate' op ""attribute 'target_qpu' failed to satisfy constraint: 32-bit signless integer attribute");
   return ::mlir::success();
+}
+
+std::pair<unsigned, unsigned> TeleGateOp::getODSOperandIndexAndLength(unsigned index) {
+  return {index, 1};
+}
+
+::mlir::Operation::operand_range TeleGateOp::getODSOperands(unsigned index) {
+  auto valueRange = getODSOperandIndexAndLength(index);
+  return {std::next(getOperation()->operand_begin(), valueRange.first),
+           std::next(getOperation()->operand_begin(), valueRange.first + valueRange.second)};
+}
+
+::mlir::Value TeleGateOp::getControlQubit() {
+  return *getODSOperands(0).begin();
+}
+
+::mlir::Value TeleGateOp::getTargetQubit() {
+  return *getODSOperands(1).begin();
+}
+
+::mlir::Value TeleGateOp::getEprHandle() {
+  return *getODSOperands(2).begin();
+}
+
+::mlir::MutableOperandRange TeleGateOp::getControlQubitMutable() {
+  auto range = getODSOperandIndexAndLength(0);
+  auto mutableRange = ::mlir::MutableOperandRange(getOperation(), range.first, range.second);
+  return mutableRange;
+}
+
+::mlir::MutableOperandRange TeleGateOp::getTargetQubitMutable() {
+  auto range = getODSOperandIndexAndLength(1);
+  auto mutableRange = ::mlir::MutableOperandRange(getOperation(), range.first, range.second);
+  return mutableRange;
+}
+
+::mlir::MutableOperandRange TeleGateOp::getEprHandleMutable() {
+  auto range = getODSOperandIndexAndLength(2);
+  auto mutableRange = ::mlir::MutableOperandRange(getOperation(), range.first, range.second);
+  return mutableRange;
+}
+
+std::pair<unsigned, unsigned> TeleGateOp::getODSResultIndexAndLength(unsigned index) {
+  return {index, 1};
+}
+
+::mlir::Operation::result_range TeleGateOp::getODSResults(unsigned index) {
+  auto valueRange = getODSResultIndexAndLength(index);
+  return {std::next(getOperation()->result_begin(), valueRange.first),
+           std::next(getOperation()->result_begin(), valueRange.first + valueRange.second)};
+}
+
+::mlir::Value TeleGateOp::getResult() {
+  return *getODSResults(0).begin();
+}
+
+::mlir::IntegerAttr TeleGateOp::getControlQpuAttr() {
+  return ::mlir::impl::getAttrFromSortedRange((*this)->getAttrs().begin() + 0, (*this)->getAttrs().end() - 1, getControlQpuAttrName()).cast<::mlir::IntegerAttr>();
 }
 
 uint32_t TeleGateOp::getControlQpu() {
@@ -1046,13 +1106,25 @@ uint32_t TeleGateOp::getControlQpu() {
   return attr.getValue().getZExtValue();
 }
 
+::mlir::IntegerAttr TeleGateOp::getTargetQpuAttr() {
+  return ::mlir::impl::getAttrFromSortedRange((*this)->getAttrs().begin() + 1, (*this)->getAttrs().end() - 0, getTargetQpuAttrName()).cast<::mlir::IntegerAttr>();
+}
+
 uint32_t TeleGateOp::getTargetQpu() {
   auto attr = getTargetQpuAttr();
   return attr.getValue().getZExtValue();
 }
 
+void TeleGateOp::setControlQpuAttr(::mlir::IntegerAttr attr) {
+  (*this)->setAttr(getControlQpuAttrName(), attr);
+}
+
 void TeleGateOp::setControlQpu(uint32_t attrValue) {
   (*this)->setAttr(getControlQpuAttrName(), ::mlir::Builder((*this)->getContext()).getIntegerAttr(::mlir::Builder((*this)->getContext()).getIntegerType(32), attrValue));
+}
+
+void TeleGateOp::setTargetQpuAttr(::mlir::IntegerAttr attr) {
+  (*this)->setAttr(getTargetQpuAttrName(), attr);
 }
 
 void TeleGateOp::setTargetQpu(uint32_t attrValue) {
@@ -1068,18 +1140,6 @@ void TeleGateOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &od
   odsState.addTypes(result);
 }
 
-TeleGateOp TeleGateOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::Type result, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, ::mlir::IntegerAttr control_qpu, ::mlir::IntegerAttr target_qpu) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, result, control_qubit, target_qubit, epr_handle, control_qpu, target_qpu);
-  auto __res__ = ::llvm::dyn_cast<TeleGateOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-TeleGateOp TeleGateOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Type result, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, ::mlir::IntegerAttr control_qpu, ::mlir::IntegerAttr target_qpu) {
-  return create(builder, builder.getLoc(), result, control_qubit, target_qubit, epr_handle, control_qpu, target_qpu);
-}
-
 void TeleGateOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, ::mlir::IntegerAttr control_qpu, ::mlir::IntegerAttr target_qpu) {
   odsState.addOperands(control_qubit);
   odsState.addOperands(target_qubit);
@@ -1090,18 +1150,6 @@ void TeleGateOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &od
   odsState.addTypes(resultTypes);
 }
 
-TeleGateOp TeleGateOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, ::mlir::IntegerAttr control_qpu, ::mlir::IntegerAttr target_qpu) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, control_qubit, target_qubit, epr_handle, control_qpu, target_qpu);
-  auto __res__ = ::llvm::dyn_cast<TeleGateOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-TeleGateOp TeleGateOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, ::mlir::IntegerAttr control_qpu, ::mlir::IntegerAttr target_qpu) {
-  return create(builder, builder.getLoc(), resultTypes, control_qubit, target_qubit, epr_handle, control_qpu, target_qpu);
-}
-
 void TeleGateOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::Type result, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, uint32_t control_qpu, uint32_t target_qpu) {
   odsState.addOperands(control_qubit);
   odsState.addOperands(target_qubit);
@@ -1109,18 +1157,6 @@ void TeleGateOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &od
   odsState.addAttribute(getControlQpuAttrName(odsState.name), odsBuilder.getIntegerAttr(odsBuilder.getIntegerType(32), control_qpu));
   odsState.addAttribute(getTargetQpuAttrName(odsState.name), odsBuilder.getIntegerAttr(odsBuilder.getIntegerType(32), target_qpu));
   odsState.addTypes(result);
-}
-
-TeleGateOp TeleGateOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::Type result, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, uint32_t control_qpu, uint32_t target_qpu) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, result, control_qubit, target_qubit, epr_handle, control_qpu, target_qpu);
-  auto __res__ = ::llvm::dyn_cast<TeleGateOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-TeleGateOp TeleGateOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Type result, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, uint32_t control_qpu, uint32_t target_qpu) {
-  return create(builder, builder.getLoc(), result, control_qubit, target_qubit, epr_handle, control_qpu, target_qpu);
 }
 
 void TeleGateOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, uint32_t control_qpu, uint32_t target_qpu) {
@@ -1133,18 +1169,6 @@ void TeleGateOp::build(::mlir::OpBuilder &odsBuilder, ::mlir::OperationState &od
   odsState.addTypes(resultTypes);
 }
 
-TeleGateOp TeleGateOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, uint32_t control_qpu, uint32_t target_qpu) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, control_qubit, target_qubit, epr_handle, control_qpu, target_qpu);
-  auto __res__ = ::llvm::dyn_cast<TeleGateOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-TeleGateOp TeleGateOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::Value control_qubit, ::mlir::Value target_qubit, ::mlir::Value epr_handle, uint32_t control_qpu, uint32_t target_qpu) {
-  return create(builder, builder.getLoc(), resultTypes, control_qubit, target_qubit, epr_handle, control_qpu, target_qpu);
-}
-
 void TeleGateOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
   assert(operands.size() == 3u && "mismatched number of parameters");
   odsState.addOperands(operands);
@@ -1153,23 +1177,10 @@ void TeleGateOp::build(::mlir::OpBuilder &, ::mlir::OperationState &odsState, ::
   odsState.addTypes(resultTypes);
 }
 
-TeleGateOp TeleGateOp::create(::mlir::OpBuilder &builder, ::mlir::Location location, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  ::mlir::OperationState __state__(location, getOperationName());
-  build(builder, __state__, resultTypes, operands, attributes);
-  auto __res__ = ::llvm::dyn_cast<TeleGateOp>(builder.create(__state__));
-  assert(__res__ && "builder didn't return the right type");
-  return __res__;
-}
-
-TeleGateOp TeleGateOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::TypeRange resultTypes, ::mlir::ValueRange operands, ::llvm::ArrayRef<::mlir::NamedAttribute> attributes) {
-  return create(builder, builder.getLoc(), resultTypes, operands, attributes);
-}
-
-::llvm::LogicalResult TeleGateOp::verifyInvariantsImpl() {
+::mlir::LogicalResult TeleGateOp::verifyInvariantsImpl() {
   auto namedAttrRange = (*this)->getAttrs();
   auto namedAttrIt = namedAttrRange.begin();
   ::mlir::Attribute tblgen_control_qpu;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitOpError("requires attribute 'control_qpu'");
@@ -1180,7 +1191,6 @@ TeleGateOp TeleGateOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Typ
     ++namedAttrIt;
   }
   ::mlir::Attribute tblgen_target_qpu;
-
   while (true) {
     if (namedAttrIt == namedAttrRange.end())
       return emitOpError("requires attribute 'target_qpu'");
@@ -1191,29 +1201,29 @@ TeleGateOp TeleGateOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Typ
     ++namedAttrIt;
   }
 
-  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect1(*this, tblgen_control_qpu, "control_qpu")))
+  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect0(*this, tblgen_control_qpu, "control_qpu")))
     return ::mlir::failure();
 
-  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect1(*this, tblgen_target_qpu, "target_qpu")))
+  if (::mlir::failed(__mlir_ods_local_attr_constraint_DQCDialect0(*this, tblgen_target_qpu, "target_qpu")))
     return ::mlir::failure();
   {
     unsigned index = 0; (void)index;
     auto valueGroup0 = getODSOperands(0);
 
     for (auto v : valueGroup0) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect2(*this, v.getType(), "operand", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "operand", index++)))
         return ::mlir::failure();
     }
     auto valueGroup1 = getODSOperands(1);
 
     for (auto v : valueGroup1) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect2(*this, v.getType(), "operand", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "operand", index++)))
         return ::mlir::failure();
     }
     auto valueGroup2 = getODSOperands(2);
 
     for (auto v : valueGroup2) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "operand", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect0(*this, v.getType(), "operand", index++)))
         return ::mlir::failure();
     }
   }
@@ -1222,50 +1232,47 @@ TeleGateOp TeleGateOp::create(::mlir::ImplicitLocOpBuilder &builder, ::mlir::Typ
     auto valueGroup0 = getODSResults(0);
 
     for (auto v : valueGroup0) {
-      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect2(*this, v.getType(), "result", index++)))
+      if (::mlir::failed(__mlir_ods_local_type_constraint_DQCDialect1(*this, v.getType(), "result", index++)))
         return ::mlir::failure();
     }
   }
   return ::mlir::success();
 }
 
-::llvm::LogicalResult TeleGateOp::verifyInvariants() {
+::mlir::LogicalResult TeleGateOp::verifyInvariants() {
   return verifyInvariantsImpl();
 }
 
 ::mlir::ParseResult TeleGateOp::parse(::mlir::OpAsmParser &parser, ::mlir::OperationState &result) {
-  ::mlir::OpAsmParser::UnresolvedOperand control_qubitRawOperand{};
-  ::llvm::ArrayRef<::mlir::OpAsmParser::UnresolvedOperand> control_qubitOperands(&control_qubitRawOperand, 1);  ::llvm::SMLoc control_qubitOperandsLoc;
+  ::mlir::OpAsmParser::UnresolvedOperand control_qubitRawOperands[1];
+  ::llvm::ArrayRef<::mlir::OpAsmParser::UnresolvedOperand> control_qubitOperands(control_qubitRawOperands);  ::llvm::SMLoc control_qubitOperandsLoc;
   (void)control_qubitOperandsLoc;
-  ::mlir::OpAsmParser::UnresolvedOperand target_qubitRawOperand{};
-  ::llvm::ArrayRef<::mlir::OpAsmParser::UnresolvedOperand> target_qubitOperands(&target_qubitRawOperand, 1);  ::llvm::SMLoc target_qubitOperandsLoc;
+  ::mlir::OpAsmParser::UnresolvedOperand target_qubitRawOperands[1];
+  ::llvm::ArrayRef<::mlir::OpAsmParser::UnresolvedOperand> target_qubitOperands(target_qubitRawOperands);  ::llvm::SMLoc target_qubitOperandsLoc;
   (void)target_qubitOperandsLoc;
-  ::mlir::OpAsmParser::UnresolvedOperand epr_handleRawOperand{};
-  ::llvm::ArrayRef<::mlir::OpAsmParser::UnresolvedOperand> epr_handleOperands(&epr_handleRawOperand, 1);  ::llvm::SMLoc epr_handleOperandsLoc;
+  ::mlir::OpAsmParser::UnresolvedOperand epr_handleRawOperands[1];
+  ::llvm::ArrayRef<::mlir::OpAsmParser::UnresolvedOperand> epr_handleOperands(epr_handleRawOperands);  ::llvm::SMLoc epr_handleOperandsLoc;
   (void)epr_handleOperandsLoc;
   ::llvm::SmallVector<::mlir::Type, 1> allOperandTypes;
   ::llvm::SmallVector<::mlir::Type, 1> allResultTypes;
 
   control_qubitOperandsLoc = parser.getCurrentLocation();
-  if (parser.parseOperand(control_qubitRawOperand))
+  if (parser.parseOperand(control_qubitRawOperands[0]))
     return ::mlir::failure();
   if (parser.parseComma())
     return ::mlir::failure();
 
   target_qubitOperandsLoc = parser.getCurrentLocation();
-  if (parser.parseOperand(target_qubitRawOperand))
+  if (parser.parseOperand(target_qubitRawOperands[0]))
     return ::mlir::failure();
   if (parser.parseComma())
     return ::mlir::failure();
 
   epr_handleOperandsLoc = parser.getCurrentLocation();
-  if (parser.parseOperand(epr_handleRawOperand))
+  if (parser.parseOperand(epr_handleRawOperands[0]))
     return ::mlir::failure();
-  {
-    auto loc = parser.getCurrentLocation();(void)loc;
-    if (parser.parseOptionalAttrDict(result.attributes))
-      return ::mlir::failure();
-  }
+  if (parser.parseOptionalAttrDict(result.attributes))
+    return ::mlir::failure();
   if (parser.parseColon())
     return ::mlir::failure();
 

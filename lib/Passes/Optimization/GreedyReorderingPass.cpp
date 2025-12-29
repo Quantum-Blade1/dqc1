@@ -12,6 +12,7 @@
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/Pass/Pass.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Debug.h"
@@ -33,13 +34,14 @@ struct GateCommutativityRules {
     auto ops2 = op2->getOperands();
 
     // Simple rule: gates on disjoint qubits commute
-    std::set<mlir::Value> qubits1(ops1.begin(), ops1.end());
-    std::set<mlir::Value> qubits2(ops2.begin(), ops2.end());
+    llvm::SmallVector<mlir::Value, 8> qubits1(ops1.begin(), ops1.end());
+    llvm::SmallVector<mlir::Value, 8> qubits2(ops2.begin(), ops2.end());
 
-    // Check for overlap
-    for (auto q : qubits1) {
-      if (qubits2.count(q) > 0) {
-        return false; // Gates share a qubit, cannot commute
+    // Check for overlap (quadratic but sufficient for small operand counts)
+    for (auto q1 : qubits1) {
+      for (auto q2 : qubits2) {
+        if (q1 == q2)
+          return false; // Gates share a qubit, cannot commute
       }
     }
 
@@ -102,10 +104,10 @@ class GreedyReorderingPass
     : public mlir::PassWrapper<GreedyReorderingPass,
                                mlir::OperationPass<mlir::func::FuncOp>> {
 public:
-  MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_OPNAME_ALLOCATIONFN(GreedyReorderingPass)
+  // No internal MLIR allocation macro used here.
 
-  StringRef getArgument() const final { return "dqc-greedy-reordering"; }
-  StringRef getDescription() const final {
+  llvm::StringRef getArgument() const final { return "dqc-greedy-reordering"; }
+  llvm::StringRef getDescription() const final {
     return "Reorder gates to minimize distribution cost using commutativity "
            "rules";
   }
@@ -113,10 +115,7 @@ public:
   GreedyReorderingPass() = default;
   GreedyReorderingPass(const GreedyReorderingPass &) {}
 
-  Option<float> targetEBitReduction{
-      *this, "ebit-reduction-target",
-      llvm::cl::desc("Target e-bit consumption reduction (0.0-1.0)"),
-      llvm::cl::init(0.3f)};
+  float targetEBitReduction = 0.3f;
 
 private:
   /// Build dependency graph from operation sequence
@@ -143,7 +142,7 @@ private:
         // Check if current operation uses results from previous
         bool depends = false;
         for (auto result : prev_op->getResults()) {
-          for (auto use : result.getUses()) {
+          for (auto &use : result.getUses()) {
             if (use.getOwner() == op) {
               depends = true;
               break;
@@ -177,25 +176,34 @@ private:
   /// Identify gate packets that can be optimized
   std::vector<dqc::OptimizedGatePacket>
   identifyGatePackets(mlir::Block *block) {
-    std::map<mlir::Value, std::vector<mlir::Operation *>> control_qubit_gates;
+    llvm::SmallVector<std::pair<mlir::Value, std::vector<mlir::Operation *>>, 8>
+        control_qubit_gates;
 
     // Group gates by control qubit
     block->walk([&](mlir::Operation *op) {
       if (dqc::GateCommutativityRules::isDistributedGate(op)) {
         if (op->getNumOperands() > 0) {
           auto control = op->getOperand(0);
-          control_qubit_gates[control].push_back(op);
+          bool found = false;
+          for (auto &p : control_qubit_gates) {
+            if (p.first == control) {
+              p.second.push_back(op);
+              found = true;
+              break;
+            }
+          }
+          if (!found)
+            control_qubit_gates.push_back({control, {op}});
         }
       }
     });
 
     // Create gate packets
     std::vector<dqc::OptimizedGatePacket> packets;
-    for (auto &[control, gates] : control_qubit_gates) {
-      packets.emplace_back(control, true);
-      for (auto gate : gates) {
+    for (auto &entry : control_qubit_gates) {
+      packets.emplace_back(entry.first, true);
+      for (auto gate : entry.second)
         packets.back().addGate(gate);
-      }
     }
 
     LLVM_DEBUG({
@@ -264,7 +272,6 @@ public:
 
 } // anonymous namespace
 
-namespace mlir {
 namespace dqc {
 
 std::unique_ptr<mlir::Pass> createGreedyReorderingPass() {
@@ -272,4 +279,3 @@ std::unique_ptr<mlir::Pass> createGreedyReorderingPass() {
 }
 
 } // namespace dqc
-} // namespace mlir

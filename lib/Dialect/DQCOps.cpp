@@ -21,7 +21,7 @@ using namespace dqc;
 
 ParseResult TeleGateMultiOp::parse(OpAsmParser &parser,
                                    OperationState &result) {
-  Location loc = parser.getCurrentLocation();
+  llvm::SMLoc loc = parser.getCurrentLocation();
   SmallVector<OpAsmParser::UnresolvedOperand, 8> operands;
   SmallVector<Type, 8> operand_types;
   SmallVector<int32_t, 4> target_qpus;
@@ -47,7 +47,7 @@ ParseResult TeleGateMultiOp::parse(OpAsmParser &parser,
     return failure();
 
   // Resolve operands
-  if (parser.resolveOperands(operands, operand_types, loc, result.operands))
+  if (parser.resolveOperands(operands, TypeRange(operand_types), loc, result.operands))
     return failure();
 
   // Add types
@@ -60,7 +60,7 @@ void TeleGateMultiOp::print(OpAsmPrinter &printer) {
   printer << " ";
   printer.printOperands(getOperands());
   printer << " : ";
-  printer.printTypes(getOperandTypes());
+  llvm::interleaveComma(getOperandTypes(), printer, [&](Type t) { printer.printType(t); });
   printer << " -> ";
-  printer.printTypes(getResultTypes());
+  llvm::interleaveComma(getResultTypes(), printer, [&](Type t) { printer.printType(t); });
 }

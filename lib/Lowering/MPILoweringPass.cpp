@@ -12,6 +12,7 @@
 #include "mlir/Pass/Pass.h"
 #include "mlir/Transforms/DialectConversion.h"
 #include "llvm/Support/Debug.h"
+#include "dqc/MLIRCompat.h"
 
 
 #define DEBUG_TYPE "mpi-lowering"
@@ -52,7 +53,7 @@ public:
     adaptState.addTypes(op->getResultTypes()); // Return EPR handle type
     adaptState.addAttributes(op->getAttrs());
 
-    auto *mpi_op = rewriter.createOperation(adaptState);
+    auto *mpi_op = dqc::compat::createOperation(rewriter, adaptState);
 
     LLVM_DEBUG(llvm::dbgs() << "Lowering epr_alloc to mpi.distribute_epr\n");
 
@@ -84,7 +85,7 @@ public:
     state.addOperands({ctrl, tgt, epr});
     state.addAttributes(op->getAttrs());
 
-    auto *mpi_op = rewriter.createOperation(state);
+    auto *mpi_op = dqc::compat::createOperation(rewriter, state);
 
     LLVM_DEBUG(llvm::dbgs() << "Lowering telegate to mpi.telegate_sequence\n");
 
@@ -98,25 +99,20 @@ class MPILoweringPass
     : public mlir::PassWrapper<MPILoweringPass,
                                mlir::OperationPass<mlir::ModuleOp>> {
 public:
+  // Compatibility: macro is a no-op if not present
   MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_OPNAME_ALLOCATIONFN(MPILoweringPass)
 
-  StringRef getArgument() const final { return "dqc-mpi-lowering"; }
-  StringRef getDescription() const final {
+  llvm::StringRef getArgument() const final { return "dqc-mpi-lowering"; }
+  llvm::StringRef getDescription() const final {
     return "Lower DQC dialect to MPI dialect for distributed execution";
   }
 
   MPILoweringPass() = default;
   MPILoweringPass(const MPILoweringPass &) {}
 
-  Option<bool> generateSPMDKernel{
-      *this, "generate-spmd",
-      llvm::cl::desc("Generate SPMD kernel with MPI rank dispatch"),
-      llvm::cl::init(true)};
-
-  Option<int> numMPIRanks{
-      *this, "num-ranks",
-      llvm::cl::desc("Number of MPI ranks (= number of QPUs)"),
-      llvm::cl::init(2)};
+  // Use plain members instead of Pass Option wrapper for compatibility.
+  bool generateSPMDKernel = true;
+  int numMPIRanks = 2;
 
 private:
   /// Generate dispatcher to split code by MPI rank
@@ -200,7 +196,6 @@ public:
 
 } // anonymous namespace
 
-namespace mlir {
 namespace dqc {
 
 std::unique_ptr<mlir::Pass> createMPILoweringPass() {
@@ -208,4 +203,3 @@ std::unique_ptr<mlir::Pass> createMPILoweringPass() {
 }
 
 } // namespace dqc
-} // namespace mlir

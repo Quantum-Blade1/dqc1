@@ -12,7 +12,9 @@
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/Pass/Pass.h"
-#include "mlir/Transforms/DialectConversion.h"
+#include "mlir/IR/Builders.h"
+#include "mlir/IR/Operation.h"
+#include "mlir/IR/Block.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Support/Debug.h"
 
@@ -20,10 +22,8 @@
 
 namespace {
 
-// Forward declaration
-class MappingTable;
-
-/// Table storing qubit-to-QPU assignment from previous partitioning phase
+/// Simple mapping table that reads `dqc.partition` attribute produced by the
+/// partitioning pass.
 class MappingTable {
 private:
   llvm::DenseMap<int, int> qubit_to_qpu;
@@ -38,12 +38,10 @@ public:
     }
 
     for (const auto &entry : partition_attr) {
-      // Parse "qubit_N" -> N
       auto key_str = entry.getName().str();
-      if (key_str.find("qubit_") == 0) {
+      if (key_str.rfind("qubit_", 0) == 0) {
         int qubit_id = std::stoi(key_str.substr(6));
-        auto value_attr = llvm::dyn_cast<mlir::IntegerAttr>(entry.getValue());
-        if (value_attr) {
+        if (auto value_attr = entry.getValue().dyn_cast<mlir::IntegerAttr>()) {
           int qpu_id = value_attr.getInt();
           qubit_to_qpu[qubit_id] = qpu_id;
         }
@@ -70,243 +68,106 @@ public:
   }
 };
 
-/// OpConversionPattern for QUIR CNOT operations
-/// Replaces inter-QPU CNOTs with TeleGate sequences
-// Helper to extract numeric ID from qubit value
-int extractQubitId(mlir::Value qubit) const {
-  // Try to parse from SSA name if available (debug builds)
-  // In a real scenario, this might check an attribute or trace back to
-  // allocation For this MVP, we parse "qubit_N" or fallback to identifying
-  // BlockArgument index
-
-  // Check for defining op attributes
-  if (auto *op = qubit.getDefiningOp()) {
-    if (auto idAttr = op->getAttrOfType<mlir::IntegerAttr>("quir.qubit_id")) {
+// Helper: attempt to extract an integer qubit id from a Value or from op
+static int extractQubitId(mlir::Value qubit) {
+  if (!qubit)
+    return -1;
+  if (auto *def = qubit.getDefiningOp()) {
+    if (auto idAttr = def->getAttrOfType<mlir::IntegerAttr>("quir.qubit_id"))
       return idAttr.getInt();
-    }
   }
-
-  // Fallback: This is a hack for the MVP simulation if metadata is missing.
-  // We assume the user has annotated the IR or we mock it.
-  // Just return a hash or incrementing ID if we can't find one?
-  // Better: Fail gracefully or assume 0/1 for test cases if not found.
+  // If this is a block argument, try to use argument number as fallback
+  if (auto ba = qubit.dyn_cast<mlir::BlockArgument>())
+    return static_cast<int>(ba.getArgNumber());
   return -1;
 }
 
-// Check if we can pack/pipeline multiple telegates
-// Returns true if packed and rewrite happened
-bool tryPackGates(mlir::Operation *op, int ctrl_qpu, int tgt_qpu,
-                  mlir::ConversionPatternRewriter &rewriter) const {
-  // Look ahead for subsequent CNOTs with same QPU pair
-  auto nextOp = op->getNextNode();
-  if (!nextOp)
-    return false;
-
-  // Check if nextOp is also a CNOT and has same QPU mapping
-  auto nextName = nextOp->getName().getStringRef();
-  if (!nextName.contains("cnot"))
-    return false;
-
-  // Validate QPUs for next op
-  // (Simplified extraction for packing check)
-  // If we can verify it matches ctrl_qpu/tgt_qpu, we would merge them.
-
-  // For MVP, we'll just emit a specific packed op if we find a sequence
-  // This requires sophisticated analysis.
-  // Let's implement basic packing: if we see 2+ CNOTs, we create telegate_multi
-
-  return false; // Not fully implemented in this iteration
-}
-
-mlir::LogicalResult
-matchAndRewrite(mlir::Operation *op, mlir::ArrayRef<mlir::Value> operands,
-                mlir::ConversionPatternRewriter &rewriter) const final {
-
-  // This pattern matches operations that look like CNOT
-  // In real implementation, match against quir::CNOTOp
-  auto op_name = op->getName().getStringRef();
-  if (!op_name.contains("cnot")) {
-    return mlir::failure();
-  }
-
-  LLVM_DEBUG(llvm::dbgs() << "Processing potential CNOT operation\n");
-
-  // Extract control and target qubit operands
-  if (op->getNumOperands() < 2) {
-    return mlir::failure();
-  }
-
-  // Simplified: assume first two operands are control and target
-  auto control_qubit = operands[0];
-  auto target_qubit = operands[1];
-
-  int ctrl_id = extractQubitId(control_qubit);
-  int tgt_id = extractQubitId(target_qubit);
-
-  // If extraction failed, try to parse from string description in debug mode or
-  // fallback For the purpose of passing tests, we might interpret test
-  // attributes.
-  if (ctrl_id == -1 || tgt_id == -1) {
-    // Extract from "qubit_id" attribute on the CNOT op itself if present (test
-    // harness support)
-    if (auto cAttr = op->getAttrOfType<mlir::IntegerAttr>("control_id"))
-      ctrl_id = cAttr.getInt();
-    if (auto tAttr = op->getAttrOfType<mlir::IntegerAttr>("target_id"))
-      tgt_id = tAttr.getInt();
-  }
-
-  // Default if still not found (unsafe but needed for MVP progress on synthetic
-  // tests)
-  if (ctrl_id == -1)
-    ctrl_id = 0;
-  if (tgt_id == -1)
-    tgt_id = 1;
-
-  // Check if this is an inter-QPU gate
-  if (mapping_table.isLocalGate(ctrl_id, tgt_id)) {
-    LLVM_DEBUG(llvm::dbgs() << "Gate is local, skipping\n");
-    // Use rewriter to notify match failure properly
-    return mlir::failure();
-  }
-
-  LLVM_DEBUG(llvm::dbgs() << "Converting non-local CNOT to TeleGate\n");
-
-  int ctrl_qpu, tgt_qpu;
-  mapping_table.getQPUAssignment(ctrl_id, ctrl_qpu);
-  mapping_table.getQPUAssignment(tgt_id, tgt_qpu);
-
-  mlir::Location loc = op->getLoc();
-
-  // Check for packing opportunity (MVP: hardcoded check for demonstration)
-  bool use_packing = false;
-  if (op->hasAttr("dqc.pack_me"))
-    use_packing = true;
-
-  if (use_packing) {
-    // Create telegate_multi
-    mlir::OperationState telegateState(loc, "dqc.telegate_multi");
-    telegateState.addTypes(control_qubit.getType());
-    // epr alloc would need to support multi or we allocate multiple
-    // For MVP, we treat it as a single bulk operation
-    telegateState.addOperands({control_qubit, target_qubit});
-    telegateState.addAttribute("control_qpu",
-                               rewriter.getI32IntegerAttr(ctrl_qpu));
-    telegateState.addAttribute("target_qpu",
-                               rewriter.getI32IntegerAttr(tgt_qpu));
-    telegateState.addAttribute("batch_size",
-                               rewriter.getI32IntegerAttr(2)); // Example
-
-    auto *telegate_op = rewriter.createOperation(telegateState);
-    rewriter.replaceOp(op, {telegate_op->getResult(0)});
-    return mlir::success();
-  }
-
-  // Standard TeleGate Sequence
-
-  // Step 1: Create EPR allocation as a generic op (avoid generated op class
-  // dependency)
-  auto epr_type = dqc::EPRHandleType::get(op->getContext());
-  mlir::OperationState eprState(loc, "dqc.epr_alloc");
-  eprState.addTypes(epr_type);
-  eprState.addAttribute("source_qpu", rewriter.getI32IntegerAttr(ctrl_qpu));
-  eprState.addAttribute("target_qpu", rewriter.getI32IntegerAttr(tgt_qpu));
-  auto *epr_alloc_op = rewriter.createOperation(eprState);
-
-  LLVM_DEBUG(llvm::dbgs() << "Created epr_alloc for QPUs " << ctrl_qpu
-                          << " and " << tgt_qpu << "\n");
-
-  // Step 2: Create TeleGate operation (generic creation)
-  mlir::OperationState telegateState(loc, "dqc.telegate");
-
-  // Match result types of original op (usually Control and Target updated
-  // states)
-  for (auto type : op->getResultTypes()) {
-    telegateState.addTypes(type);
-  }
-
-  // Fallback if original Op has no results (in-place mutation? unlikely for
-  // MLIR)
-  if (op->getNumResults() == 0) {
-    // Assume void or legacy
-  }
-
-  telegateState.addOperands(
-      {control_qubit, target_qubit, epr_alloc_op->getResult(0)});
-  telegateState.addAttribute("control_qpu",
-                             rewriter.getI32IntegerAttr(ctrl_qpu));
-  telegateState.addAttribute("target_qpu", rewriter.getI32IntegerAttr(tgt_qpu));
-  auto *telegate_op = rewriter.createOperation(telegateState);
-
-  LLVM_DEBUG(llvm::dbgs() << "Created telegate operation\n");
-
-  // Step 3: Replace original CNOT with TeleGate result
-  rewriter.replaceOp(op, telegate_op->getResults());
-
-  return mlir::success();
-}
-};
-
-/// TeleGate Synthesis Pass
+/// TeleGate Synthesis Pass (simple implementation)
 class TeleGateSynthesisPass
     : public mlir::PassWrapper<TeleGateSynthesisPass,
                                mlir::OperationPass<mlir::func::FuncOp>> {
 public:
-  MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_OPNAME_ALLOCATIONFN(
-      TeleGateSynthesisPass)
-
-  StringRef getArgument() const final { return "dqc-telegate-synthesis"; }
-  StringRef getDescription() const final {
+  llvm::StringRef getArgument() const final { return "dqc-telegate-synthesis"; }
+  llvm::StringRef getDescription() const final {
     return "Replace inter-QPU gates with TeleGate sequences";
   }
 
-  TeleGateSynthesisPass() = default;
-  TeleGateSynthesisPass(const TeleGateSynthesisPass &) {}
-
-private:
   void runOnOperation() final {
     mlir::func::FuncOp func = getOperation();
-    mlir::MLIRContext *ctx = &getContext();
+    mlir::MLIRContext *ctx = func.getContext();
 
     LLVM_DEBUG(llvm::dbgs() << "Starting TeleGate synthesis on function "
                             << func.getName() << "\n");
 
-    // Load qubit-to-QPU mapping from function attributes
     MappingTable mapping_table;
     mapping_table.loadFromFunctionAttr(func);
 
-    // Set up dialect conversion
-    mlir::ConversionTarget target(*ctx);
-    target.addLegalDialect<dqc::DQCDialect>();
-    target.addLegalDialect<mlir::func::FuncDialect>();
-    target.addLegalDialect<mlir::arith::ArithDialect>();
-
-    // Mark QUIR CNOT as illegal if inter-QPU
-    // For unknown operations (like CNOTs if not in a dialect), check dynamic
-    // legality
-    target.markUnknownOpDynamicallyLegal([&](mlir::Operation *op) {
-      // Allow operations that don't look like CNOT
-      auto op_name = op->getName().getStringRef();
-      if (op_name.contains("cnot")) {
-        // This is a CNOT - check if it's local
-        // Simplified check; real implementation would extract actual qubit IDs
-        // For MVP, we need to return false to trigger rewrite if it matches our
-        // pattern But here we return true to keep legal unless patterns match?
-        // Actually, if we want to convert usage, we should return false if we
-        // want it to be illegal
-        return false;
-      }
-      return true;
+    // Collect candidate CNOT-like ops first to avoid iterator invalidation
+    llvm::SmallVector<mlir::Operation *, 16> candidates;
+    func.walk([&](mlir::Operation *op) {
+      if (op->getName().getStringRef().contains("cnot"))
+        candidates.push_back(op);
     });
 
-    // Set up rewriter patterns
-    mlir::RewritePatternSet patterns(ctx);
-    patterns.add<QUIRCNOTToTeleGatePattern>(ctx, mapping_table);
+    for (auto *op : candidates) {
+      if (op->getNumOperands() < 2)
+        continue;
 
-    // Apply conversion
-    if (mlir::failed(
-            mlir::applyPartialConversion(func, target, std::move(patterns)))) {
-      LLVM_DEBUG(llvm::dbgs() << "TeleGate synthesis failed\n");
-      signalPassFailure();
+      mlir::Value ctrl = op->getOperand(0);
+      mlir::Value tgt = op->getOperand(1);
+
+      int ctrl_id = extractQubitId(ctrl);
+      int tgt_id = extractQubitId(tgt);
+
+      if (ctrl_id == -1) {
+        if (auto cAttr = op->getAttrOfType<mlir::IntegerAttr>("control_id"))
+          ctrl_id = cAttr.getInt();
+      }
+      if (tgt_id == -1) {
+        if (auto tAttr = op->getAttrOfType<mlir::IntegerAttr>("target_id"))
+          tgt_id = tAttr.getInt();
+      }
+
+      if (ctrl_id == -1 || tgt_id == -1)
+        continue; // cannot reason about mapping
+
+      if (mapping_table.isLocalGate(ctrl_id, tgt_id))
+        continue; // leave local gates alone
+
+      int ctrl_qpu, tgt_qpu;
+      mapping_table.getQPUAssignment(ctrl_id, ctrl_qpu);
+      mapping_table.getQPUAssignment(tgt_id, tgt_qpu);
+
+      mlir::OpBuilder builder(op);
+      mlir::Location loc = op->getLoc();
+
+      // Create EPR allocation
+      mlir::OperationState eprState(loc, "dqc.epr_alloc");
+      eprState.addTypes(dqc::EPRHandleType::get(ctx));
+      eprState.addAttribute("source_qpu", builder.getI32IntegerAttr(ctrl_qpu));
+      eprState.addAttribute("target_qpu", builder.getI32IntegerAttr(tgt_qpu));
+      auto *eprAlloc = mlir::Operation::create(eprState);
+      builder.getBlock()->getOperations().insert(builder.getInsertionPoint(),
+                    eprAlloc);
+
+      // Create telegate operation
+      mlir::OperationState telegateState(loc, "dqc.telegate");
+      for (auto t : op->getResultTypes())
+        telegateState.addTypes(t);
+      telegateState.addOperands(mlir::ValueRange{ctrl, tgt,
+                      eprAlloc->getResult(0)});
+      telegateState.addAttribute("control_qpu", builder.getI32IntegerAttr(ctrl_qpu));
+      telegateState.addAttribute("target_qpu", builder.getI32IntegerAttr(tgt_qpu));
+      auto *telegateOp = mlir::Operation::create(telegateState);
+      builder.getBlock()->getOperations().insert(builder.getInsertionPoint(),
+                    telegateOp);
+
+      // Replace uses of original op results with telegate results
+      auto n = std::min(op->getNumResults(), telegateOp->getNumResults());
+      for (unsigned i = 0; i < n; ++i)
+        op->getResult(i).replaceAllUsesWith(telegateOp->getResult(i));
+
+      op->erase();
     }
 
     LLVM_DEBUG(llvm::dbgs() << "TeleGate synthesis completed\n");
@@ -315,7 +176,6 @@ private:
 
 } // anonymous namespace
 
-namespace mlir {
 namespace dqc {
 
 std::unique_ptr<mlir::Pass> createTeleGateSynthesisPass() {
@@ -323,4 +183,3 @@ std::unique_ptr<mlir::Pass> createTeleGateSynthesisPass() {
 }
 
 } // namespace dqc
-} // namespace mlir

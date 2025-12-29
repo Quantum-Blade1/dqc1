@@ -10,10 +10,11 @@
 #include "mlir/IR/Dialect.h"
 
 using namespace mlir;
-using namespace dqc;
 
+namespace dqc {
 /// Initialize the DQC compiler by registering dialects and passes
-void dqc::initDQCCompiler(mlir::MLIRContext *context) {
+void initDQCCompiler(mlir::MLIRContext *context) {
   context->loadDialect<DQCDialect>();
-  dqc::registerDQCPasses();
+  registerDQCPasses();
 }
+} // namespace dqc

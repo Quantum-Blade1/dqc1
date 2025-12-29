@@ -3,7 +3,6 @@
 |* Dialect Definitions                                                        *|
 |*                                                                            *|
 |* Automatically generated file, do not edit!                                 *|
-|* From: DQCDialect.td                                                        *|
 |*                                                                            *|
 \*===----------------------------------------------------------------------===*/
 
@@ -11,9 +10,7 @@ MLIR_DEFINE_EXPLICIT_TYPE_ID(::dqc::DQCDialect)
 namespace dqc {
 
 DQCDialect::DQCDialect(::mlir::MLIRContext *context)
-    : ::mlir::Dialect(getDialectNamespace(), context, ::mlir::TypeID::get<DQCDialect>())
-    
-     {
+    : ::mlir::Dialect(getDialectNamespace(), context, ::mlir::TypeID::get<DQCDialect>()) {
   
   initialize();
 }

@@ -19,11 +19,9 @@ add_llvm_library(
   LINK_LIBS
   PUBLIC
   MLIRIR
-  MLIRBytecodeOpInterface
   MLIRSideEffectInterfaces
   MLIRInferTypeOpInterface
   MLIRCallInterfaces
-  MLIRFunctionInterfaces
   MLIRFuncDialect
   MLIRArithDialect
 )

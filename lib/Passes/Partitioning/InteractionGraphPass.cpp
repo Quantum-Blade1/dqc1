@@ -10,9 +10,12 @@
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/Pass/Pass.h"
+#include "mlir/Dialect/Func/IR/FuncOps.h"
+#include "mlir/IR/BuiltinAttributes.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/ADT/StringRef.h"
 #include <map>
 #include <set>
 #include <vector>
@@ -31,6 +34,7 @@ struct GatePacket {
   std::vector<int> target_qubit_ids;
   int weight; // Frequency of this packet
 
+  GatePacket() : control_qubit_id(-1), weight(0) {}
   GatePacket(int ctrl) : control_qubit_id(ctrl), weight(0) {}
 
   void addTarget(int target) {
@@ -48,7 +52,9 @@ struct InteractionEdge {
   int weight;
   int gate_count; // Number of gates on this edge for gate packing
 
-  InteractionEdge(int src, int tgt)
+    InteractionEdge() : source_qubit(-1), target_qubit(-1), weight(1), gate_count(1) {}
+
+    InteractionEdge(int src, int tgt)
       : source_qubit(src), target_qubit(tgt), weight(1), gate_count(1) {}
 
   bool operator<(const InteractionEdge &other) const {
@@ -127,10 +133,10 @@ class InteractionGraphPass
     : public mlir::PassWrapper<InteractionGraphPass,
                                mlir::OperationPass<mlir::func::FuncOp>> {
 public:
-  MLIR_DEFINE_EXPLICIT_INTERNAL_INLINE_OPNAME_ALLOCATIONFN(InteractionGraphPass)
-
-  StringRef getArgument() const final { return "dqc-interaction-graph"; }
-  StringRef getDescription() const final {
+  // Use llvm::StringRef for command-line strings and avoid internal MLIR
+  // allocation macro which isn't necessary here.
+  llvm::StringRef getArgument() const final { return "dqc-interaction-graph"; }
+  llvm::StringRef getDescription() const final {
     return "Build a weighted hypergraph representation of qubit interactions";
   }
 
@@ -292,14 +298,12 @@ private:
                               const dqc::HypergraphPartition &part) {
     // Create a DictionaryAttr with the partition mapping
     mlir::MLIRContext *ctx = func.getContext();
-    std::vector<std::pair<mlir::StringAttr, mlir::Attribute>> partition_entries;
+    llvm::SmallVector<mlir::NamedAttribute, 8> partition_entries;
 
     for (const auto &[qubit_id, qpu_id] : part.qubit_to_qpu) {
-      auto key =
-          mlir::StringAttr::get(ctx, "qubit_" + std::to_string(qubit_id));
-      auto value =
-          mlir::IntegerAttr::get(mlir::IntegerType::get(ctx, 32), qpu_id);
-      partition_entries.push_back({key, value});
+      auto key = mlir::StringAttr::get(ctx, "qubit_" + std::to_string(qubit_id));
+      auto value = mlir::IntegerAttr::get(mlir::IntegerType::get(ctx, 32), qpu_id);
+      partition_entries.push_back(mlir::NamedAttribute(key, value));
     }
 
     auto partition_dict = mlir::DictionaryAttr::get(ctx, partition_entries);
@@ -376,7 +380,6 @@ public:
 
 } // anonymous namespace
 
-namespace mlir {
 namespace dqc {
 
 std::unique_ptr<mlir::Pass> createInteractionGraphPass() {
@@ -384,4 +387,3 @@ std::unique_ptr<mlir::Pass> createInteractionGraphPass() {
 }
 
 } // namespace dqc
-} // namespace mlir

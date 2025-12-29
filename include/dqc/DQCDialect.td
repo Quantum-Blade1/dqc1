@@ -18,7 +18,6 @@ def DQC_Dialect : Dialect {
   }];
   let cppNamespace = "::dqc";
   let hasConstantMaterializer = 1;
-  let usePropertiesForAttributes = 0;
   let useDefaultTypePrinterParser = 1;
 }
 

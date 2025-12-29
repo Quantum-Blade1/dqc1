@@ -7,9 +7,9 @@
 #include "dqc/DQCDialect.h"
 #include "dqc/DQCOps.h"
 #include "mlir/IR/DialectImplementation.h"
+#include "mlir/Dialect/Arith/IR/Arith.h"
 #include "llvm/ADT/TypeSwitch.h"
 
-using namespace llvm;
 using namespace mlir;
 using namespace dqc;
 
@@ -37,7 +37,7 @@ void DQCDialect::initialize() {
 //===------------------------------------------------------===//
 
 Type DQCDialect::parseType(DialectAsmParser &parser) const {
-  StringRef keyword;
+  llvm::StringRef keyword;
   if (parser.parseKeyword(&keyword))
     return nullptr;
 
@@ -52,10 +52,24 @@ Type DQCDialect::parseType(DialectAsmParser &parser) const {
 }
 
 void DQCDialect::printType(Type type, DialectAsmPrinter &printer) const {
-  TypeSwitch<Type>(type)
+  mlir::TypeSwitch<Type>(type)
       .Case<QubitType>([&](Type) { printer << "qubit"; })
       .Case<EPRHandleType>([&](Type) { printer << "epr_handle"; })
       .Default([](Type) { llvm_unreachable("unknown DQC type"); });
 }
 
 } // namespace dqc
+
+::mlir::Operation *dqc::DQCDialect::materializeConstant(::mlir::OpBuilder &builder,
+                                                       ::mlir::Attribute value,
+                                                       ::mlir::Type type,
+                                                       ::mlir::Location loc) {
+  // Simple materialization: forward to arith.constant when possible.
+  if (auto intAttr = value.dyn_cast<::mlir::IntegerAttr>()) {
+    return builder.create<::mlir::arith::ConstantOp>(loc, type, intAttr).getOperation();
+  }
+  if (auto floatAttr = value.dyn_cast<::mlir::FloatAttr>()) {
+    return builder.create<::mlir::arith::ConstantOp>(loc, type, floatAttr).getOperation();
+  }
+  return nullptr;
+}

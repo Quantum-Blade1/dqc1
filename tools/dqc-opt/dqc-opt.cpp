@@ -19,12 +19,11 @@ using namespace mlir;
 using namespace llvm;
 
 int main(int argc, char **argv) {
-  mlir::registerAllPasses();
   // Register DQC passes
-  mlir::dqc::registerDQCPasses();
+  dqc::registerDQCPasses();
 
   mlir::DialectRegistry registry;
-  registry.insert<mlir::dqc::DQCDialect>();
+  registry.insert<dqc::DQCDialect>();
   registry.insert<mlir::func::FuncDialect>();
   registry.insert<mlir::arith::ArithDialect>();
 
