@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+  <style>
+    .box { fill:#f6f8fa; stroke:#334155; stroke-width:2px; rx:8; }
+    .title { font: bold 16px sans-serif; fill:#0f172a; }
+    .label { font: 13px sans-serif; fill:#0f172a; }
+    .small { font: 11px sans-serif; fill:#0f172a; }
+    .arrow { stroke:#0f172a; stroke-width:2; fill:none; marker-end: url(#arrowhead); }
+  </style>
+
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0f172a"/>
+    </marker>
+  </defs>
+
+  <!-- Top: User Input / CLI -->
+  <g>
+    <rect class="box" x="60" y="30" width="380" height="70" />
+    <text class="title" x="80" y="56">dqc-opt (tools/dqc-opt)</text>
+    <text class="small" x="80" y="76">CLI driver — parses MLIR, runs selected passes</text>
+  </g>
+
+  <!-- Left: Sources / TableGen -->
+  <g>
+    <rect class="box" x="60" y="130" width="220" height="110" />
+    <text class="title" x="80" y="156">Source / TableGen</text>
+    <text class="small" x="80" y="176">include/dqc/*.td</text>
+    <text class="small" x="80" y="192">-> mlir-tblgen</text>
+    <text class="small" x="80" y="208">-> generated includes (build/include/dqc)</text>
+  </g>
+
+  <!-- Center: Dialect & Ops -->
+  <g>
+    <rect class="box" x="340" y="170" width="300" height="120" />
+    <text class="title" x="360" y="196">DQCDialect (lib/Dialect)</text>
+    <text class="small" x="360" y="214">Ops & Types: DQCOps.cpp/h, DQCDialect.cpp</text>
+    <text class="small" x="360" y="230">materializeConstant, op definitions</text>
+  </g>
+
+  <!-- Right: Passes -->
+  <g>
+    <rect class="box" x="680" y="130" width="460" height="240" />
+    <text class="title" x="700" y="156">Passes (lib/Passes)</text>
+    <text class="label" x="700" y="178">Partitioning: InteractionGraphPass</text>
+    <text class="label" x="700" y="198">Optimization: GreedyReorderingPass</text>
+    <text class="label" x="700" y="218">Synthesis: TeleGateSynthesisPass</text>
+    <text class="label" x="700" y="238">Lowering: MPILoweringPass</text>
+    <text class="small" x="700" y="262">Pass factories exposed to `dqc` namespace</text>
+  </g>
+
+  <!-- Build / CMake / CI -->
+  <g>
+    <rect class="box" x="60" y="270" width="280" height="100" />
+    <text class="title" x="80" y="296">Build / CI</text>
+    <text class="small" x="80" y="316">CMake + Ninja (top-level CMakeLists.txt)</text>
+    <text class="small" x="80" y="332">.github/workflows/ci.yml builds MLIR + project</text>
+  </g>
+
+  <!-- Tests / Examples -->
+  <g>
+    <rect class="box" x="380" y="310" width="300" height="80" />
+    <text class="title" x="400" y="336">Tests / Examples (test/IR)</text>
+    <text class="small" x="400" y="354">dqc_ir_test.mlir, telegate_example.mlir, partition_example.mlir</text>
+  </g>
+
+  <!-- Arrows -->
+  <path class="arrow" d="M260 180 L340 200" />
+  <path class="arrow" d="M400 100 L400 170" />
+  <path class="arrow" d="M640 230 L680 200" />
+  <path class="arrow" d="M640 240 L700 300" />
+  <path class="arrow" d="M500 310 L500 330" />
+
+  <!-- Flow labels -->
+  <text class="label" x="245" y="182">TableGen -> includes</text>
+  <text class="label" x="420" y="138">Dialect registration</text>
+  <text class="label" x="540" y="198">Pass registration & factories</text>
+
+  <!-- Bottom: Outputs -->
+  <g>
+    <rect class="box" x="380" y="410" width="760" height="120" />
+    <text class="title" x="400" y="436">Outputs</text>
+    <text class="label" x="400" y="456">- Annotated MLIR: functions gain attributes `dqc.partition`, `dqc.edge_cut_cost`</text>
+    <text class="label" x="400" y="476">- TeleGate sequences for inter-QPU gates</text>
+    <text class="label" x="400" y="496">- Lowered MPI dialect for distributed execution</text>
+  </g>
+
+  <!-- Notes -->
+  <text class="small" x="60" y="560">Legend: boxes = code components, arrows = build/runtime flow</text>
+  <text class="small" x="60" y="580">Key files: include/dqc/, lib/Dialect/, lib/Passes/, tools/dqc-opt/, test/IR/</text>
+
+</svg>
