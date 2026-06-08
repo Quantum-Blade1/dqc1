@@ -45,6 +45,10 @@ int dqc_measure(int q);
 
 void dqc_reset(int q);
 
+// -- Multi-controlled gates -----------------------------------------
+
+void dqc_mcx(int *controls, int num_controls, int target);
+
 // -- Distributed / MPI stubs ----------------------------------------
 
 void dqc_distribute_epr(int src_qpu, int tgt_qpu, int *epr_id);

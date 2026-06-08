@@ -235,3 +235,17 @@ def DQC_ResetOp : DQC_Op<"reset"> {
   let assemblyFormat = "$qubit attr-dict `:` `(` type($qubit) `)`";
 }
 
+//===----------------------------------------------------------------------===//
+// Multi-Controlled X (generalized Toffoli)
+//===----------------------------------------------------------------------===//
+
+def DQC_MCXOp : DQC_Op<"mcx"> {
+  let summary = "Multi-controlled X gate (generalized Toffoli)";
+  let description = [{
+    Applies X to the last qubit if all preceding qubits are |1>.
+    Syntax: dqc.mcx %c0, %c1, ..., %target : (!dqc.qubit, ...)
+  }];
+  let arguments = (ins Variadic<DQC_QubitType>:$qubits);
+  let hasCustomAssemblyFormat = 1;
+}
+

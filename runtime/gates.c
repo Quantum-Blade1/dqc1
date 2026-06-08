@@ -148,3 +148,29 @@ void dqc_reset(int q) {
     if (outcome == 1)
         dqc_x(q);
 }
+
+/* ------------------------------------------------------------------ */
+/* Multi-controlled X (generalized Toffoli)                           */
+/* ------------------------------------------------------------------ */
+
+void dqc_mcx(int *controls, int num_controls, int target) {
+    double complex *sv = dqc_get_state();
+    long dim = dqc_get_dim();
+    long tmask = 1L << target;
+
+    for (long i = 0; i < dim; i++) {
+        int all_set = 1;
+        for (int c = 0; c < num_controls; c++) {
+            if (!(i & (1L << controls[c]))) {
+                all_set = 0;
+                break;
+            }
+        }
+        if (all_set && !(i & tmask)) {
+            long j = i | tmask;
+            double complex tmp = sv[i];
+            sv[i] = sv[j];
+            sv[j] = tmp;
+        }
+    }
+}

@@ -64,3 +64,42 @@ void TeleGateMultiOp::print(OpAsmPrinter &printer) {
   printer << " -> ";
   llvm::interleaveComma(getResultTypes(), printer, [&](Type t) { printer.printType(t); });
 }
+
+//===------------------------------------------------------===//
+// MCXOp: Custom Assembly Format
+// Syntax: dqc.mcx %c0, %c1, ..., %target : (!dqc.qubit, ...)
+//===------------------------------------------------------===//
+
+ParseResult MCXOp::parse(OpAsmParser &parser, OperationState &result) {
+  SmallVector<OpAsmParser::UnresolvedOperand, 8> operands;
+  SmallVector<Type, 8> types;
+  llvm::SMLoc loc = parser.getCurrentLocation();
+
+  if (parser.parseOperandList(operands, OpAsmParser::Delimiter::None))
+    return failure();
+  if (parser.parseOptionalAttrDict(result.attributes))
+    return failure();
+  if (parser.parseColon())
+    return failure();
+  if (parser.parseLParen())
+    return failure();
+  if (parser.parseTypeList(types))
+    return failure();
+  if (parser.parseRParen())
+    return failure();
+
+  if (parser.resolveOperands(operands, types, loc, result.operands))
+    return failure();
+  return success();
+}
+
+void MCXOp::print(OpAsmPrinter &printer) {
+  printer << " ";
+  llvm::interleaveComma(getOperands(), printer,
+                        [&](Value v) { printer.printOperand(v); });
+  printer.printOptionalAttrDict((*this)->getAttrs());
+  printer << " : (";
+  llvm::interleaveComma(getOperandTypes(), printer,
+                        [&](Type t) { printer.printType(t); });
+  printer << ")";
+}

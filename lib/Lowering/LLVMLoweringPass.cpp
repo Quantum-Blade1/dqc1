@@ -291,6 +291,45 @@ struct MPITeleGateLowering : public ConversionPattern {
   }
 };
 
+/// dqc.mcx -> alloca control array + call @dqc_mcx(ptr, i32, i32)
+struct MCXLowering : public ConversionPattern {
+  MCXLowering(TypeConverter &tc, MLIRContext *ctx)
+      : ConversionPattern(tc, "dqc.mcx", 1, ctx) {}
+
+  LogicalResult matchAndRewrite(Operation *op, ArrayRef<Value> operands,
+                                ConversionPatternRewriter &rw) const override {
+    auto module = op->getParentOfType<ModuleOp>();
+    auto loc = op->getLoc();
+    auto i32 = IntegerType::get(rw.getContext(), 32);
+    auto ptr = LLVM::LLVMPointerType::get(rw.getContext());
+    auto voidTy = LLVM::LLVMVoidType::get(rw.getContext());
+    auto fn = getOrInsertFunc(
+        module, "dqc_mcx",
+        LLVM::LLVMFunctionType::get(voidTy, {ptr, i32, i32}));
+
+    int numControls = operands.size() - 1;
+    auto numCtrlVal = rw.create<LLVM::ConstantOp>(
+        loc, i32, rw.getI32IntegerAttr(numControls));
+
+    // Alloca array for control qubit indices
+    auto alloca = rw.create<LLVM::AllocaOp>(loc, ptr, i32, numCtrlVal);
+
+    // Store each control qubit index
+    for (int c = 0; c < numControls; c++) {
+      auto idx = rw.create<LLVM::ConstantOp>(
+          loc, i32, rw.getI32IntegerAttr(c));
+      auto gep = rw.create<LLVM::GEPOp>(loc, ptr, i32, alloca, ValueRange{idx});
+      rw.create<LLVM::StoreOp>(loc, operands[c], gep);
+    }
+
+    // Target is last operand
+    rw.create<LLVM::CallOp>(
+        loc, fn, ValueRange{alloca, numCtrlVal, operands[numControls]});
+    rw.eraseOp(op);
+    return success();
+  }
+};
+
 /// dqc.reset -> call @dqc_reset(i32)
 struct ResetLowering : public ConversionPattern {
   ResetLowering(TypeConverter &tc, MLIRContext *ctx)
@@ -391,6 +430,7 @@ public:
     patterns.add<ToffoliLowering>(typeConverter, ctx);
     patterns.add<MeasureLowering>(typeConverter, ctx);
     patterns.add<ResetLowering>(typeConverter, ctx);
+    patterns.add<MCXLowering>(typeConverter, ctx);
     patterns.add<EPRAllocLLVMLowering>(typeConverter, ctx);
     patterns.add<TeleGateLLVMLowering>(typeConverter, ctx);
     patterns.add<MPIDistributeEPRLowering>(typeConverter, ctx);
