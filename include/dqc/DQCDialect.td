@@ -224,3 +224,14 @@ def DQC_BarrierOp : DQC_Op<"barrier"> {
   let assemblyFormat = "attr-dict";
 }
 
+//===----------------------------------------------------------------------===//
+// Reset Operation
+// Resets a qubit to |0> via measure + conditional X
+//===----------------------------------------------------------------------===//
+
+def DQC_ResetOp : DQC_Op<"reset"> {
+  let summary = "Reset qubit to |0> state";
+  let arguments = (ins DQC_QubitType:$qubit);
+  let assemblyFormat = "$qubit attr-dict `:` `(` type($qubit) `)`";
+}
+

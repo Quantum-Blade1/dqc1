@@ -41,6 +41,10 @@ void dqc_ccx(int c0, int c1, int tgt);
 
 int dqc_measure(int q);
 
+// -- Reset ----------------------------------------------------------
+
+void dqc_reset(int q);
+
 // -- Distributed / MPI stubs ----------------------------------------
 
 void dqc_distribute_epr(int src_qpu, int tgt_qpu, int *epr_id);

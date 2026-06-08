@@ -136,3 +136,15 @@ void dqc_ccx(int c0, int c1, int tgt) {
         }
     }
 }
+
+/* ------------------------------------------------------------------ */
+/* Reset                                                              */
+/* ------------------------------------------------------------------ */
+
+extern int dqc_measure(int q);
+
+void dqc_reset(int q) {
+    int outcome = dqc_measure(q);
+    if (outcome == 1)
+        dqc_x(q);
+}

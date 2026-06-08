@@ -291,6 +291,24 @@ struct MPITeleGateLowering : public ConversionPattern {
   }
 };
 
+/// dqc.reset -> call @dqc_reset(i32)
+struct ResetLowering : public ConversionPattern {
+  ResetLowering(TypeConverter &tc, MLIRContext *ctx)
+      : ConversionPattern(tc, "dqc.reset", 1, ctx) {}
+
+  LogicalResult matchAndRewrite(Operation *op, ArrayRef<Value> operands,
+                                ConversionPatternRewriter &rw) const override {
+    auto module = op->getParentOfType<ModuleOp>();
+    auto i32 = IntegerType::get(rw.getContext(), 32);
+    auto voidTy = LLVM::LLVMVoidType::get(rw.getContext());
+    auto fn = getOrInsertFunc(module, "dqc_reset",
+                              LLVM::LLVMFunctionType::get(voidTy, {i32}));
+    rw.create<LLVM::CallOp>(op->getLoc(), fn, ValueRange{operands[0]});
+    rw.eraseOp(op);
+    return success();
+  }
+};
+
 /// Erase metadata-only ops that have no runtime semantics.
 struct EraseOpLowering : public ConversionPattern {
   EraseOpLowering(TypeConverter &tc, MLIRContext *ctx, StringRef opName)
@@ -372,6 +390,7 @@ public:
                                        "dqc.swap", "dqc_swap");
     patterns.add<ToffoliLowering>(typeConverter, ctx);
     patterns.add<MeasureLowering>(typeConverter, ctx);
+    patterns.add<ResetLowering>(typeConverter, ctx);
     patterns.add<EPRAllocLLVMLowering>(typeConverter, ctx);
     patterns.add<TeleGateLLVMLowering>(typeConverter, ctx);
     patterns.add<MPIDistributeEPRLowering>(typeConverter, ctx);
