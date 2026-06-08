@@ -110,10 +110,13 @@ llvm::DenseMap<mlir::Value, std::vector<std::string>> collectQubitOpSequences(ml
   for (auto &op : block->getOperations()) {
     if (op.getName().getStringRef().contains("alloc_qubit") ||
         op.getName().getStringRef().contains("barrier") ||
+        op.getName().getStringRef().contains("c_if") ||
+        op.getName().getStringRef().contains("repeat") ||
+        op.getNumRegions() > 0 ||
         &op == block->getTerminator()) {
       continue;
     }
-    
+
     // For each qubit operand, record the operation and its operand index
     for (unsigned i = 0; i < op.getNumOperands(); ++i) {
       auto operand = op.getOperand(i);
@@ -135,6 +138,9 @@ bool performPeepholeCancellation(mlir::Block *block) {
   for (auto &op : block->getOperations()) {
     if (op.getName().getStringRef().contains("alloc_qubit") ||
         op.getName().getStringRef().contains("barrier") ||
+        op.getName().getStringRef().contains("c_if") ||
+        op.getName().getStringRef().contains("repeat") ||
+        op.getNumRegions() > 0 ||
         &op == block->getTerminator()) {
       continue;
     }
@@ -245,6 +251,12 @@ std::vector<std::complex<double>> simulateCircuit(mlir::Block *block, const llvm
         name.find("epr_alloc") != std::string::npos ||
         name.find("epr_consume") != std::string::npos ||
         name.find("partition_info") != std::string::npos ||
+        name.find("c_if") != std::string::npos ||
+        name.find("repeat") != std::string::npos ||
+        name == "dqc.reset" ||
+        name == "dqc.mcx" ||
+        name == "dqc.mcp" ||
+        op.getNumRegions() > 0 ||
         &op == block->getTerminator()) {
       continue;
     }
@@ -622,7 +634,10 @@ private:
     // 3. Barrier dependency: treat dqc.barrier as a hard fence
     llvm::SmallVector<mlir::Operation *, 4> barriers;
     for (auto *op : ops) {
-      if (op->getName().getStringRef().contains("barrier")) {
+      if (op->getName().getStringRef().contains("barrier") ||
+          op->getName().getStringRef().contains("c_if") ||
+          op->getName().getStringRef().contains("repeat") ||
+          op->getNumRegions() > 0) {
         barriers.push_back(op);
       }
     }
