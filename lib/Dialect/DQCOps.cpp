@@ -1,0 +1,66 @@
+//===- DQCOps.cpp - DQC Op Implementations ---*- C++ -*-===//
+//
+// This file implements operations in the DQC dialect.
+//
+//===----------------------------------------------------===//
+
+#include "dqc/DQCOps.h"
+#include "dqc/DQCDialect.h"
+#include "mlir/IR/OpImplementation.h"
+
+using namespace llvm;
+using namespace mlir;
+using namespace dqc;
+
+#define GET_OP_CLASSES
+#include "dqc/DQCOps.cpp.inc"
+
+//===------------------------------------------------------===//
+// DQCTeleGateMultiOp: Custom Assembly Format
+//===------------------------------------------------------===//
+
+ParseResult TeleGateMultiOp::parse(OpAsmParser &parser,
+                                   OperationState &result) {
+  llvm::SMLoc loc = parser.getCurrentLocation();
+  SmallVector<OpAsmParser::UnresolvedOperand, 8> operands;
+  SmallVector<Type, 8> operand_types;
+  SmallVector<int32_t, 4> target_qpus;
+
+  // Parse: control_qubit, target_qubits..., epr_handle
+  if (parser.parseOperandList(operands, OpAsmParser::Delimiter::None))
+    return failure();
+
+  if (parser.parseOptionalAttrDict(result.attributes))
+    return failure();
+
+  if (parser.parseColon())
+    return failure();
+
+  if (parser.parseTypeList(operand_types))
+    return failure();
+
+  if (parser.parseArrow())
+    return failure();
+
+  SmallVector<Type, 4> result_types;
+  if (parser.parseTypeList(result_types))
+    return failure();
+
+  // Resolve operands
+  if (parser.resolveOperands(operands, TypeRange(operand_types), loc, result.operands))
+    return failure();
+
+  // Add types
+  result.addTypes(result_types);
+
+  return success();
+}
+
+void TeleGateMultiOp::print(OpAsmPrinter &printer) {
+  printer << " ";
+  printer.printOperands(getOperands());
+  printer << " : ";
+  llvm::interleaveComma(getOperandTypes(), printer, [&](Type t) { printer.printType(t); });
+  printer << " -> ";
+  llvm::interleaveComma(getResultTypes(), printer, [&](Type t) { printer.printType(t); });
+}
