@@ -387,6 +387,60 @@ struct ResetLowering : public ConversionPattern {
   }
 };
 
+/// dqc.repeat N -> loop with counter (header/body/merge blocks)
+struct RepeatLowering : public ConversionPattern {
+  RepeatLowering(TypeConverter &tc, MLIRContext *ctx)
+      : ConversionPattern(tc, "dqc.repeat", 1, ctx) {}
+
+  LogicalResult matchAndRewrite(Operation *op, ArrayRef<Value>,
+                                ConversionPatternRewriter &rw) const override {
+    auto loc = op->getLoc();
+    auto i64 = IntegerType::get(rw.getContext(), 64);
+    auto i1 = IntegerType::get(rw.getContext(), 1);
+
+    int64_t count = op->getAttrOfType<IntegerAttr>("count").getInt();
+    auto limitVal = rw.create<LLVM::ConstantOp>(
+        loc, i64, rw.getI64IntegerAttr(count));
+    auto zeroVal = rw.create<LLVM::ConstantOp>(
+        loc, i64, rw.getI64IntegerAttr(0));
+    auto oneVal = rw.create<LLVM::ConstantOp>(
+        loc, i64, rw.getI64IntegerAttr(1));
+
+    Block *currentBlock = rw.getInsertionBlock();
+    Block *mergeBlock = rw.splitBlock(currentBlock, rw.getInsertionPoint());
+
+    // Header block: check counter < limit
+    Block *headerBlock = rw.createBlock(mergeBlock);
+    headerBlock->addArgument(i64, loc);
+
+    // Body block: clone ops + increment counter
+    Block *bodyBlock = rw.createBlock(mergeBlock);
+
+    // Wire current -> header (counter = 0)
+    rw.setInsertionPointToEnd(currentBlock);
+    rw.create<LLVM::BrOp>(loc, ValueRange{zeroVal}, headerBlock);
+
+    // Header: if counter < limit goto body else goto merge
+    rw.setInsertionPointToStart(headerBlock);
+    Value counter = headerBlock->getArgument(0);
+    auto cmp = rw.create<LLVM::ICmpOp>(
+        loc, i1, LLVM::ICmpPredicate::slt, counter, limitVal);
+    rw.create<LLVM::CondBrOp>(loc, cmp, bodyBlock, mergeBlock);
+
+    // Body: clone ops + increment + branch to header
+    rw.setInsertionPointToStart(bodyBlock);
+    auto &bodyOps = op->getRegion(0).front().getOperations();
+    for (auto &bodyOp : bodyOps) {
+      rw.clone(bodyOp);
+    }
+    auto nextCounter = rw.create<LLVM::AddOp>(loc, i64, counter, oneVal);
+    rw.create<LLVM::BrOp>(loc, ValueRange{nextCounter}, headerBlock);
+
+    rw.eraseOp(op);
+    return success();
+  }
+};
+
 /// dqc.c_if -> icmp + cond_br with then/merge blocks
 struct CondLowering : public ConversionPattern {
   CondLowering(TypeConverter &tc, MLIRContext *ctx)
@@ -512,6 +566,7 @@ public:
     patterns.add<MCXLowering>(typeConverter, ctx);
     patterns.add<MCPLowering>(typeConverter, ctx);
     patterns.add<CondLowering>(typeConverter, ctx);
+    patterns.add<RepeatLowering>(typeConverter, ctx);
     patterns.add<EPRAllocLLVMLowering>(typeConverter, ctx);
     patterns.add<TeleGateLLVMLowering>(typeConverter, ctx);
     patterns.add<MPIDistributeEPRLowering>(typeConverter, ctx);

@@ -141,6 +141,37 @@ void CondOp::print(OpAsmPrinter &printer) {
 }
 
 //===------------------------------------------------------===//
+// RepeatOp: Custom Assembly Format
+// Syntax: dqc.repeat 3 { body }
+//===------------------------------------------------------===//
+
+ParseResult RepeatOp::parse(OpAsmParser &parser, OperationState &result) {
+  int64_t count;
+  if (parser.parseInteger(count))
+    return failure();
+  result.addAttribute("count",
+      IntegerAttr::get(IntegerType::get(parser.getContext(), 64), count));
+
+  Region *body = result.addRegion();
+  if (parser.parseRegion(*body, {}, {}))
+    return failure();
+  if (body->empty())
+    body->emplaceBlock();
+
+  if (parser.parseOptionalAttrDict(result.attributes))
+    return failure();
+
+  return success();
+}
+
+void RepeatOp::print(OpAsmPrinter &printer) {
+  printer << " " << getCount();
+  printer << " ";
+  printer.printRegion(getBody(), false);
+  printer.printOptionalAttrDict((*this)->getAttrs(), {"count"});
+}
+
+//===------------------------------------------------------===//
 // MCPOp: Custom Assembly Format
 // Syntax: dqc.mcp %c0, ..., %target angle : (!dqc.qubit, ...)
 //===------------------------------------------------------===//

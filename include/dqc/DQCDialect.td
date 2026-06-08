@@ -280,3 +280,19 @@ def DQC_CondOp : DQC_Op<"c_if", [SingleBlock, NoTerminator]> {
   let hasCustomAssemblyFormat = 1;
 }
 
+//===----------------------------------------------------------------------===//
+// Repeat Loop
+//===----------------------------------------------------------------------===//
+
+def DQC_RepeatOp : DQC_Op<"repeat", [SingleBlock, NoTerminator]> {
+  let summary = "Repeat a block of quantum operations N times";
+  let description = [{
+    Static loop that executes the body region a fixed number of times.
+    Useful for iterative algorithms like Grover's search.
+    Syntax: dqc.repeat N { body }
+  }];
+  let arguments = (ins I64Attr:$count);
+  let regions = (region SizedRegion<1>:$body);
+  let hasCustomAssemblyFormat = 1;
+}
+
