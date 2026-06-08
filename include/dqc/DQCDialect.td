@@ -263,3 +263,20 @@ def DQC_MCPOp : DQC_Op<"mcp"> {
   let hasCustomAssemblyFormat = 1;
 }
 
+//===----------------------------------------------------------------------===//
+// Classical Conditional (c_if)
+//===----------------------------------------------------------------------===//
+
+def DQC_CondOp : DQC_Op<"c_if", [SingleBlock, NoTerminator]> {
+  let summary = "Conditionally execute quantum ops based on classical bit";
+  let description = [{
+    Executes the body region only if the classical bit is 1.
+    Essential for measurement feedback, error correction, and
+    teleportation with corrections.
+    Syntax: dqc.c_if %cbit { body }
+  }];
+  let arguments = (ins DQC_CbitType:$condition);
+  let regions = (region SizedRegion<1>:$body);
+  let hasCustomAssemblyFormat = 1;
+}
+

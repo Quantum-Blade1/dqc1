@@ -105,6 +105,42 @@ void MCXOp::print(OpAsmPrinter &printer) {
 }
 
 //===------------------------------------------------------===//
+// CondOp (c_if): Custom Assembly Format
+// Syntax: dqc.c_if %cbit { body }
+//===------------------------------------------------------===//
+
+ParseResult CondOp::parse(OpAsmParser &parser, OperationState &result) {
+  OpAsmParser::UnresolvedOperand cond;
+  Type condType;
+
+  if (parser.parseOperand(cond))
+    return failure();
+
+  condType = CbitType::get(parser.getContext());
+  if (parser.resolveOperand(cond, condType, result.operands))
+    return failure();
+
+  Region *body = result.addRegion();
+  if (parser.parseRegion(*body, {}, {}))
+    return failure();
+  if (body->empty())
+    body->emplaceBlock();
+
+  if (parser.parseOptionalAttrDict(result.attributes))
+    return failure();
+
+  return success();
+}
+
+void CondOp::print(OpAsmPrinter &printer) {
+  printer << " ";
+  printer.printOperand(getCondition());
+  printer << " ";
+  printer.printRegion(getBody(), false);
+  printer.printOptionalAttrDict((*this)->getAttrs());
+}
+
+//===------------------------------------------------------===//
 // MCPOp: Custom Assembly Format
 // Syntax: dqc.mcp %c0, ..., %target angle : (!dqc.qubit, ...)
 //===------------------------------------------------------===//

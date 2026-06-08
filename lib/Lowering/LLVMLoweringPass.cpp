@@ -387,6 +387,46 @@ struct ResetLowering : public ConversionPattern {
   }
 };
 
+/// dqc.c_if -> icmp + cond_br with then/merge blocks
+struct CondLowering : public ConversionPattern {
+  CondLowering(TypeConverter &tc, MLIRContext *ctx)
+      : ConversionPattern(tc, "dqc.c_if", 1, ctx) {}
+
+  LogicalResult matchAndRewrite(Operation *op, ArrayRef<Value> operands,
+                                ConversionPatternRewriter &rw) const override {
+    auto loc = op->getLoc();
+    auto i32 = IntegerType::get(rw.getContext(), 32);
+    auto i1 = IntegerType::get(rw.getContext(), 1);
+
+    // Compare cbit == 1
+    auto one = rw.create<LLVM::ConstantOp>(loc, i32, rw.getI32IntegerAttr(1));
+    auto cmp = rw.create<LLVM::ICmpOp>(
+        loc, i1, LLVM::ICmpPredicate::eq, operands[0], one);
+
+    // Split current block: everything after c_if goes to merge
+    Block *currentBlock = rw.getInsertionBlock();
+    Block *mergeBlock = rw.splitBlock(currentBlock, rw.getInsertionPoint());
+
+    // Create then block
+    Block *thenBlock = rw.createBlock(mergeBlock);
+
+    // Clone body ops into then block
+    auto &bodyOps = op->getRegion(0).front().getOperations();
+    rw.setInsertionPointToStart(thenBlock);
+    for (auto &bodyOp : bodyOps) {
+      rw.clone(bodyOp);
+    }
+    rw.create<LLVM::BrOp>(loc, ValueRange{}, mergeBlock);
+
+    // Add conditional branch at end of current block
+    rw.setInsertionPointToEnd(currentBlock);
+    rw.create<LLVM::CondBrOp>(loc, cmp, thenBlock, mergeBlock);
+
+    rw.eraseOp(op);
+    return success();
+  }
+};
+
 /// Erase metadata-only ops that have no runtime semantics.
 struct EraseOpLowering : public ConversionPattern {
   EraseOpLowering(TypeConverter &tc, MLIRContext *ctx, StringRef opName)
@@ -471,6 +511,7 @@ public:
     patterns.add<ResetLowering>(typeConverter, ctx);
     patterns.add<MCXLowering>(typeConverter, ctx);
     patterns.add<MCPLowering>(typeConverter, ctx);
+    patterns.add<CondLowering>(typeConverter, ctx);
     patterns.add<EPRAllocLLVMLowering>(typeConverter, ctx);
     patterns.add<TeleGateLLVMLowering>(typeConverter, ctx);
     patterns.add<MPIDistributeEPRLowering>(typeConverter, ctx);
