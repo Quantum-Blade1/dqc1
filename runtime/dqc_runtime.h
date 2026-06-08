@@ -48,6 +48,7 @@ void dqc_reset(int q);
 // -- Multi-controlled gates -----------------------------------------
 
 void dqc_mcx(int *controls, int num_controls, int target);
+void dqc_mcp(int *controls, int num_controls, int target, double angle);
 
 // -- Distributed / MPI stubs ----------------------------------------
 

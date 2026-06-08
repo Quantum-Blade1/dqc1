@@ -103,3 +103,51 @@ void MCXOp::print(OpAsmPrinter &printer) {
                         [&](Type t) { printer.printType(t); });
   printer << ")";
 }
+
+//===------------------------------------------------------===//
+// MCPOp: Custom Assembly Format
+// Syntax: dqc.mcp %c0, ..., %target angle : (!dqc.qubit, ...)
+//===------------------------------------------------------===//
+
+ParseResult MCPOp::parse(OpAsmParser &parser, OperationState &result) {
+  SmallVector<OpAsmParser::UnresolvedOperand, 8> operands;
+  SmallVector<Type, 8> types;
+  llvm::SMLoc loc = parser.getCurrentLocation();
+
+  if (parser.parseOperandList(operands, OpAsmParser::Delimiter::None))
+    return failure();
+
+  double angle;
+  if (parser.parseFloat(angle))
+    return failure();
+  result.addAttribute("angle",
+      FloatAttr::get(Float64Type::get(parser.getContext()), angle));
+
+  if (parser.parseOptionalAttrDict(result.attributes))
+    return failure();
+  if (parser.parseColon())
+    return failure();
+  if (parser.parseLParen())
+    return failure();
+  if (parser.parseTypeList(types))
+    return failure();
+  if (parser.parseRParen())
+    return failure();
+
+  if (parser.resolveOperands(operands, types, loc, result.operands))
+    return failure();
+  return success();
+}
+
+void MCPOp::print(OpAsmPrinter &printer) {
+  printer << " ";
+  llvm::interleaveComma(getOperands(), printer,
+                        [&](Value v) { printer.printOperand(v); });
+  printer << " ";
+  printer << (*this)->getAttrOfType<FloatAttr>("angle").getValueAsDouble();
+  printer.printOptionalAttrDict((*this)->getAttrs(), {"angle"});
+  printer << " : (";
+  llvm::interleaveComma(getOperandTypes(), printer,
+                        [&](Type t) { printer.printType(t); });
+  printer << ")";
+}

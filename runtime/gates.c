@@ -174,3 +174,28 @@ void dqc_mcx(int *controls, int num_controls, int target) {
         }
     }
 }
+
+/* ------------------------------------------------------------------ */
+/* Multi-controlled Phase                                             */
+/* ------------------------------------------------------------------ */
+
+void dqc_mcp(int *controls, int num_controls, int target, double angle) {
+    double complex *sv = dqc_get_state();
+    long dim = dqc_get_dim();
+    long tmask = 1L << target;
+
+    double complex phase = cexp(I * angle);
+
+    for (long i = 0; i < dim; i++) {
+        int all_set = 1;
+        for (int c = 0; c < num_controls; c++) {
+            if (!(i & (1L << controls[c]))) {
+                all_set = 0;
+                break;
+            }
+        }
+        if (all_set && (i & tmask)) {
+            sv[i] *= phase;
+        }
+    }
+}

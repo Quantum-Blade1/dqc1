@@ -249,3 +249,17 @@ def DQC_MCXOp : DQC_Op<"mcx"> {
   let hasCustomAssemblyFormat = 1;
 }
 
+//===----------------------------------------------------------------------===//
+// Multi-Controlled Phase
+//===----------------------------------------------------------------------===//
+
+def DQC_MCPOp : DQC_Op<"mcp"> {
+  let summary = "Multi-controlled phase gate";
+  let description = [{
+    Applies phase e^(i*angle) to target if all controls are |1>.
+    Syntax: dqc.mcp %c0, ..., %target angle : (!dqc.qubit, ...)
+  }];
+  let arguments = (ins Variadic<DQC_QubitType>:$qubits, F64Attr:$angle);
+  let hasCustomAssemblyFormat = 1;
+}
+

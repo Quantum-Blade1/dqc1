@@ -330,6 +330,45 @@ struct MCXLowering : public ConversionPattern {
   }
 };
 
+/// dqc.mcp -> alloca control array + call @dqc_mcp(ptr, i32, i32, f64)
+struct MCPLowering : public ConversionPattern {
+  MCPLowering(TypeConverter &tc, MLIRContext *ctx)
+      : ConversionPattern(tc, "dqc.mcp", 1, ctx) {}
+
+  LogicalResult matchAndRewrite(Operation *op, ArrayRef<Value> operands,
+                                ConversionPatternRewriter &rw) const override {
+    auto module = op->getParentOfType<ModuleOp>();
+    auto loc = op->getLoc();
+    auto i32 = IntegerType::get(rw.getContext(), 32);
+    auto f64 = Float64Type::get(rw.getContext());
+    auto ptr = LLVM::LLVMPointerType::get(rw.getContext());
+    auto voidTy = LLVM::LLVMVoidType::get(rw.getContext());
+    auto fn = getOrInsertFunc(
+        module, "dqc_mcp",
+        LLVM::LLVMFunctionType::get(voidTy, {ptr, i32, i32, f64}));
+
+    int numControls = operands.size() - 1;
+    auto numCtrlVal = rw.create<LLVM::ConstantOp>(
+        loc, i32, rw.getI32IntegerAttr(numControls));
+
+    auto alloca = rw.create<LLVM::AllocaOp>(loc, ptr, i32, numCtrlVal);
+
+    for (int c = 0; c < numControls; c++) {
+      auto idx = rw.create<LLVM::ConstantOp>(loc, i32, rw.getI32IntegerAttr(c));
+      auto gep = rw.create<LLVM::GEPOp>(loc, ptr, i32, alloca, ValueRange{idx});
+      rw.create<LLVM::StoreOp>(loc, operands[c], gep);
+    }
+
+    auto angle = op->getAttrOfType<FloatAttr>("angle");
+    auto angleVal = rw.create<LLVM::ConstantOp>(loc, f64, angle);
+
+    rw.create<LLVM::CallOp>(
+        loc, fn, ValueRange{alloca, numCtrlVal, operands[numControls], angleVal});
+    rw.eraseOp(op);
+    return success();
+  }
+};
+
 /// dqc.reset -> call @dqc_reset(i32)
 struct ResetLowering : public ConversionPattern {
   ResetLowering(TypeConverter &tc, MLIRContext *ctx)
@@ -431,6 +470,7 @@ public:
     patterns.add<MeasureLowering>(typeConverter, ctx);
     patterns.add<ResetLowering>(typeConverter, ctx);
     patterns.add<MCXLowering>(typeConverter, ctx);
+    patterns.add<MCPLowering>(typeConverter, ctx);
     patterns.add<EPRAllocLLVMLowering>(typeConverter, ctx);
     patterns.add<TeleGateLLVMLowering>(typeConverter, ctx);
     patterns.add<MPIDistributeEPRLowering>(typeConverter, ctx);
