@@ -3,307 +3,307 @@ DQC — Distributed Quantum Compiler
 
 A 6-pass quantum compiler on MLIR/LLVM that partitions circuits across QPUs, synthesizes teleportation-based remote gates over EPR channels, and lowers to native executables through statevector simulation.
 
-```
-  ┌──────────────┐     ┌───────────────────────────────────────────────────────────────────┐     ┌──────────────┐
-  │              │     │                    DQC COMPILER CORE                               │     │              │
-  │  .mlir       │     │                                                                   │     │  native      │
-  │  circuit     │────>│  DQC Dialect ──> 6-Pass Pipeline ──> LLVM Dialect ──> LLVM IR     │────>│  executable  │
-  │  source      │     │                                                                   │     │              │
-  └──────────────┘     └───────────────────────────────────────────────────────────────────┘     └──────┬───────┘
-                                                                                                       │
-                                                                                                       v
-                                                                                                ┌──────────────┐
-                                                                                                │  statevector │
-                                                                                                │  simulator   │
-                                                                                                │  runtime     │
-                                                                                                └──────────────┘
-```
-
 Architecture
 ------------
 
-### System Overview
+### High-Level Pipeline
 
+```mermaid
+flowchart LR
+    A["`.mlir` Circuit\nSource"] --> B["MLIR Frontend\nParser + Lexer"]
+    B --> C["DQC Dialect IR\n`!dqc.qubit` `!dqc.cbit`"]
+    C --> D["6-Pass\nMiddle-End"]
+    D --> E["LLVM Dialect IR"]
+    E --> F["LLVM IR `.ll`"]
+    F --> G["clang Linker"]
+    G --> H["Native\nExecutable"]
+    H --> I["Statevector\nSimulator Runtime"]
+
+    style A fill:#1a1a2e,stroke:#e94560,color:#fff
+    style D fill:#16213e,stroke:#0f3460,color:#fff
+    style H fill:#1a1a2e,stroke:#e94560,color:#fff
+    style I fill:#0f3460,stroke:#e94560,color:#fff
 ```
-┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                             │
-│                              DQC COMPILER ARCHITECTURE                                      │
-│                                                                                             │
-│  ┌────────────────────────────────────────────────────────────────────────────────────────┐  │
-│  │                            FRONTEND (MLIR Parser)                                      │  │
-│  │                                                                                        │  │
-│  │   .mlir source ──> MLIR Lexer ──> MLIR Parser ──> DQC Dialect AST (Module + FuncOp)   │  │
-│  │                                                                                        │  │
-│  │   Types resolved:  !dqc.qubit    !dqc.cbit    !dqc.epr_handle                         │  │
-│  │   Ops parsed:      alloc_qubit   h/x/y/z/s/t  cnot/cz/swap  ccx                      │  │
-│  │                    rx/ry/rz      measure       reset          barrier                  │  │
-│  │                    mcx/mcp       c_if{region}  repeat{region}                          │  │
-│  └────────────────────────────────────┬───────────────────────────────────────────────────┘  │
-│                                       │                                                     │
-│                                       v                                                     │
-│  ┌────────────────────────────────────────────────────────────────────────────────────────┐  │
-│  │                          MIDDLE-END (6-Pass Pipeline)                                  │  │
-│  │                                                                                        │  │
-│  │  ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐                      │  │
-│  │  │  PASS 1          │   │  PASS 2          │   │  PASS 3          │                     │  │
-│  │  │  InteractionGraph│──>│  CCXDecomposition│──>│  TeleGateSynth.  │                     │  │
-│  │  │                  │   │                  │   │                  │                      │  │
-│  │  │  Partitioning    │   │  Gate Synthesis  │   │  Gate Synthesis  │                     │  │
-│  │  │  ────────────    │   │  ──────────────  │   │  ──────────────  │                      │  │
-│  │  │  Weighted hyper- │   │  CCX ──> 6 CNOT │   │  Cross-QPU CNOT │                      │  │
-│  │  │  graph min-cut   │   │       + 7 T/Tdg │   │  ──> EPR alloc  │                      │  │
-│  │  │  assigns qubits  │   │       + 2 H     │   │     + telegate   │                      │  │
-│  │  │  to QPU slots    │   │                  │   │     sequence     │                      │  │
-│  │  └─────────────────┘   └─────────────────┘   └────────┬────────┘                      │  │
-│  │                                                        │                               │  │
-│  │                                                        v                               │  │
-│  │  ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐                      │  │
-│  │  │  PASS 6          │   │  PASS 5          │   │  PASS 4          │                     │  │
-│  │  │  LLVMLowering   │<──│  MPILowering     │<──│  GreedyReorder   │                     │  │
-│  │  │                  │   │                  │   │                  │                      │  │
-│  │  │  Code Generation │   │  Distribution    │   │  Optimization    │                     │  │
-│  │  │  ──────────────  │   │  ────────────    │   │  ────────────    │                      │  │
-│  │  │  DQC ops ──>     │   │  Wrap gates in   │   │  Commutation-    │                      │  │
-│  │  │  LLVM runtime    │   │  MPI rank guards │   │  based reorder + │                      │  │
-│  │  │  calls + control │   │  for multi-node  │   │  peephole cancel │                      │  │
-│  │  │  flow (br/cond)  │   │  execution       │   │  (H·H, X·X, ..) │                      │  │
-│  │  └────────┬────────┘   └─────────────────┘   └─────────────────┘                      │  │
-│  │           │                                                                            │  │
-│  └───────────┼────────────────────────────────────────────────────────────────────────────┘  │
-│              │                                                                              │
-│              v                                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────────────────────┐  │
-│  │                            BACKEND (LLVM Emission)                                     │  │
-│  │                                                                                        │  │
-│  │   LLVM Dialect IR ──> MLIR-to-LLVM Translation ──> LLVM IR (.ll) ──> clang ──> binary │  │
-│  │                                                                                        │  │
-│  │   Injected at function boundaries:                                                     │  │
-│  │     entry:  call @dqc_init(num_qubits)                                                │  │
-│  │     exit:   call @dqc_dump_state()  +  call @dqc_finalize()                           │  │
-│  └────────────────────────────────────┬───────────────────────────────────────────────────┘  │
-│                                       │                                                     │
-└───────────────────────────────────────┼─────────────────────────────────────────────────────┘
-                                        │
-                                        v
-┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                                                                             │
-│                          RUNTIME (libdqc_runtime.a)                                         │
-│                                                                                             │
-│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐    │
-│  │  state_vector.c   │  │  gates.c          │  │  measurement.c   │  │  mpi_comm.c      │    │
-│  │                   │  │                   │  │                   │  │                  │    │
-│  │  2^n complex amp  │  │  apply_gate()     │  │  Born-rule sample │  │  EPR distribute  │    │
-│  │  array management │  │  H,X,Y,Z,S,T     │  │  Wavefunction     │  │  Telegate stubs  │    │
-│  │  init / finalize  │  │  Rx,Ry,Rz        │  │  collapse +       │  │  MPI init /      │    │
-│  │  alloc_qubit      │  │  CNOT,CZ,SWAP    │  │  renormalize      │  │  finalize        │    │
-│  │  dump_state (bar  │  │  CCX (Toffoli)   │  │                   │  │                  │    │
-│  │  chart display)   │  │  MCX,MCP (multi) │  │  Returns 0 or 1   │  │  Single-process  │    │
-│  │                   │  │  Reset (meas+X)  │  │  as i32            │  │  simulation mode │    │
-│  └──────────────────┘  └──────────────────┘  └──────────────────┘  └──────────────────┘    │
-│                                                                                             │
-└─────────────────────────────────────────────────────────────────────────────────────────────┘
+
+### System Architecture
+
+```mermaid
+graph TB
+    subgraph Frontend["FRONTEND — MLIR Parser"]
+        SRC[".mlir source"] --> LEX["MLIR Lexer"]
+        LEX --> PARSE["MLIR Parser"]
+        PARSE --> AST["DQC Dialect AST\n(Module + FuncOp)"]
+        AST --- TYPES["Types: !dqc.qubit · !dqc.cbit · !dqc.epr_handle"]
+        AST --- OPS["Ops: alloc_qubit · h/x/y/z/s/t · cnot/cz/swap · ccx\nrx/ry/rz · measure · reset · barrier\nmcx/mcp · c_if region · repeat region"]
+    end
+
+    subgraph MiddleEnd["MIDDLE-END — 6-Pass Pipeline"]
+        direction TB
+        P1["Pass 1: InteractionGraph\n━━━━━━━━━━━━━━━━━━━━\nWeighted hypergraph min-cut\nassigns qubits → QPU slots"]
+        P2["Pass 2: CCXDecomposition\n━━━━━━━━━━━━━━━━━━━━\nCCX → 6 CNOT + 7 T/Tdg + 2 H\n(Barenco decomposition)"]
+        P3["Pass 3: TeleGateSynthesis\n━━━━━━━━━━━━━━━━━━━━\nCross-QPU CNOT → EPR alloc\n+ telegate sequence"]
+        P4["Pass 4: GreedyReordering\n━━━━━━━━━━━━━━━━━━━━\nCommutation-based reorder\n+ peephole cancel (H·H, X·X)"]
+        P5["Pass 5: MPILowering\n━━━━━━━━━━━━━━━━━━━━\nWrap gates in MPI rank\nguards for multi-node exec"]
+        P6["Pass 6: LLVMLowering\n━━━━━━━━━━━━━━━━━━━━\nDQC ops → LLVM runtime calls\n+ control flow (br/cond_br)"]
+
+        P1 --> P2 --> P3 --> P4 --> P5 --> P6
+    end
+
+    subgraph Backend["BACKEND — LLVM Emission"]
+        LLVMIR["LLVM Dialect IR"] --> TRANSLATE["MLIR-to-LLVM\nTranslation"]
+        TRANSLATE --> LL[".ll file"]
+        LL --> CLANG["clang"]
+        CLANG --> BIN["native binary"]
+        INJECT["Injected at boundaries:\nentry: @dqc_init\nexit: @dqc_dump_state + @dqc_finalize"]
+    end
+
+    subgraph Runtime["RUNTIME — libdqc_runtime.a"]
+        direction LR
+        SV["state_vector.c\n━━━━━━━━━━━━━━\n2^n complex amp\ninit / finalize\nalloc_qubit\ndump_state"]
+        GT["gates.c\n━━━━━━━━━━━━━━\napply_gate()\nH,X,Y,Z,S,T\nRx,Ry,Rz\nCNOT,CZ,SWAP\nCCX,MCX,MCP\nReset"]
+        MS["measurement.c\n━━━━━━━━━━━━━━\nBorn-rule sample\ncollapse + renorm\nreturns 0|1 as i32"]
+        MPI["mpi_comm.c\n━━━━━━━━━━━━━━\nEPR distribute\ntelegate stubs\nMPI init/finalize\nsingle-process sim"]
+    end
+
+    Frontend --> MiddleEnd
+    MiddleEnd --> Backend
+    Backend --> Runtime
+
+    style Frontend fill:#0d1117,stroke:#58a6ff,color:#c9d1d9
+    style MiddleEnd fill:#0d1117,stroke:#f78166,color:#c9d1d9
+    style Backend fill:#0d1117,stroke:#3fb950,color:#c9d1d9
+    style Runtime fill:#0d1117,stroke:#d2a8ff,color:#c9d1d9
 ```
 
 ### Progressive Lowering — IR at Each Stage
 
-```
-STAGE 0: Input (DQC Dialect)                  STAGE 3: After TeleGateSynthesis
-─────────────────────────                     ──────────────────────────────────
-module {                                      module {
-  func.func @circuit() {                        func.func @circuit() {
-    %q0 = dqc.alloc_qubit : !dqc.qubit           %q0 = dqc.alloc_qubit {qpu=0}
-    %q1 = dqc.alloc_qubit : !dqc.qubit           %q1 = dqc.alloc_qubit {qpu=1}
-    dqc.h %q0                                     dqc.h %q0
-    dqc.cnot %q0, %q1  ←── cross-QPU!            %epr = dqc.epr_alloc 0, 1
-  }                                               dqc.telegate %q0, %q1, %epr
-}                                               }
-                                              }
-         │                                             │
-         v                                             v
+```mermaid
+flowchart TB
+    subgraph S0["Stage 0 — Input (DQC Dialect)"]
+        I0["dqc.alloc_qubit\ndqc.h %q0\ndqc.cnot %q0, %q1\n← cross-QPU gate!"]
+    end
 
-STAGE 1: After InteractionGraph               STAGE 4: After GreedyReordering
-───────────────────────────────               ─────────────────────────────────
-module {                                      (same ops, reordered for locality
-  func.func @circuit() {                       + self-inverse pairs cancelled)
-    %q0 = dqc.alloc_qubit {qpu = 0}
-    %q1 = dqc.alloc_qubit {qpu = 1}                   │
-    dqc.h %q0                                          v
-    dqc.cnot %q0, %q1  ←── still here
-  }                                           STAGE 5: After MPILowering
-}                                             ─────────────────────────────
-                                              mpi.rank_dispatch {
-         │                                      rank 0: local gates for QPU 0
-         v                                      rank 1: local gates for QPU 1
-                                                comm:   epr + telegate calls
-STAGE 2: After CCXDecomposition               }
-───────────────────────────────
-(CCX gates decomposed into                             │
- 6 CNOT + 7 T/Tdg + 2 H,                              v
- other gates unchanged)
-                                              STAGE 6: After LLVMLowering (LLVM IR)
-                                              ────────────────────────────────────────
-                                              define void @circuit() {
-                                                call void @dqc_init(i32 2)
-                                                %0 = call i32 @dqc_alloc_qubit()
-                                                %1 = call i32 @dqc_alloc_qubit()
-                                                call void @dqc_h(i32 %0)
-                                                call void @dqc_distribute_epr(...)
-                                                call void @dqc_telegate_sequence(...)
-                                                call void @dqc_dump_state()
-                                                call void @dqc_finalize()
-                                                ret void
-                                              }
+    subgraph S1["Stage 1 — After InteractionGraph"]
+        I1["alloc_qubit {qpu = 0}\nalloc_qubit {qpu = 1}\ndqc.h %q0\ndqc.cnot %q0, %q1\n← annotated, not yet replaced"]
+    end
+
+    subgraph S2["Stage 2 — After CCXDecomposition"]
+        I2["CCX gates decomposed:\nccx → 6×CNOT + 7×T/Tdg + 2×H\nOther gates unchanged"]
+    end
+
+    subgraph S3["Stage 3 — After TeleGateSynthesis"]
+        I3["cross-QPU CNOT replaced:\n%epr = dqc.epr_alloc 0, 1\ndqc.telegate %q0, %q1, %epr\n+ SWAP → 3×CNOT before telegate"]
+    end
+
+    subgraph S4["Stage 4 — After GreedyReordering"]
+        I4["Gates reordered for locality\nSelf-inverse pairs cancelled:\nH·H → I, X·X → I, CNOT·CNOT → I\nRotation angles preserved"]
+    end
+
+    subgraph S5["Stage 5 — After MPILowering"]
+        I5["mpi.rank_dispatch {\n  rank 0: local QPU-0 gates\n  rank 1: local QPU-1 gates\n  comm: epr + telegate calls\n}"]
+    end
+
+    subgraph S6["Stage 6 — After LLVMLowering"]
+        I6["define void @circuit() {\n  call @dqc_init(i32 2)\n  call @dqc_alloc_qubit()\n  call @dqc_h(i32 %0)\n  call @dqc_distribute_epr(...)\n  call @dqc_telegate_sequence(...)\n  call @dqc_dump_state()\n  ret void\n}"]
+    end
+
+    S0 -->|"partition\nqubits"| S1
+    S1 -->|"decompose\nToffoli"| S2
+    S2 -->|"synthesize\ntelegates"| S3
+    S3 -->|"reorder +\ncancel"| S4
+    S4 -->|"MPI rank\nguards"| S5
+    S5 -->|"emit LLVM\nruntime calls"| S6
+
+    style S0 fill:#1a1a2e,stroke:#e94560,color:#eee
+    style S1 fill:#16213e,stroke:#0f3460,color:#eee
+    style S2 fill:#1a1a2e,stroke:#e94560,color:#eee
+    style S3 fill:#16213e,stroke:#0f3460,color:#eee
+    style S4 fill:#1a1a2e,stroke:#e94560,color:#eee
+    style S5 fill:#16213e,stroke:#0f3460,color:#eee
+    style S6 fill:#1a1a2e,stroke:#e94560,color:#eee
 ```
 
 ### Teleportation-Based Remote Gate Protocol
 
-```
-When a CNOT spans two QPUs, DQC replaces it with a teleportation sequence:
+```mermaid
+sequenceDiagram
+    participant QPU0 as QPU 0 (Control)
+    participant EPR as EPR Channel
+    participant QPU1 as QPU 1 (Target)
 
-  QPU 0 (control qubit)              QPU 1 (target qubit)
-  ════════════════════                ════════════════════
+    Note over QPU0,QPU1: Original: CNOT(q_ctrl@QPU0, q_tgt@QPU1) — impossible directly!
 
-  q_ctrl ──────●──────────────────────────────────── (original CNOT — impossible!)
-               │
-               v    becomes:
+    rect rgb(15, 52, 96)
+        Note over QPU0,QPU1: Step 1 — Pre-distribute EPR pair
+        EPR->>QPU0: epr_a (half of |Φ+⟩)
+        EPR->>QPU1: epr_b (half of |Φ+⟩)
+        Note over EPR: |Φ+⟩ = (|00⟩ + |11⟩) / √2
+    end
 
-  q_ctrl ───●───[H]───[M]─── c0 ─────────── (classical bit sent to QPU 1)
-            │                      ╲
-  epr_a ───⊕───────────[M]─── c1 ──╲──────── (classical bit sent to QPU 1)
-                                     ╲
-            ┄┄┄┄┄EPR pair┄┄┄┄┄       ╲
-                                       v
-  epr_b ──────────────────────────[X^c1]──[Z^c0]───●─── (corrected remote ctrl)
-                                                    │
-  q_tgt  ──────────────────────────────────────────⊕─── (CNOT applied!)
+    rect rgb(26, 26, 46)
+        Note over QPU0: Step 2 — Bell measurement
+        QPU0->>QPU0: CNOT(q_ctrl, epr_a)
+        QPU0->>QPU0: H(q_ctrl)
+        QPU0->>QPU0: c0 = Measure(q_ctrl)
+        QPU0->>QPU0: c1 = Measure(epr_a)
+    end
 
+    rect rgb(15, 52, 96)
+        Note over QPU0,QPU1: Step 3 — Classical communication
+        QPU0-->>QPU1: Send classical bits c0, c1
+    end
 
-  Protocol:
-  1. Pre-distribute EPR pair: |Φ+⟩ = (|00⟩ + |11⟩)/√2 across QPUs
-  2. Bell measurement on (q_ctrl, epr_a) at QPU 0 → two classical bits
-  3. Send classical bits to QPU 1
-  4. Apply Pauli corrections on epr_b based on measurement outcomes
-  5. Execute CNOT(epr_b, q_tgt) locally on QPU 1
+    rect rgb(26, 26, 46)
+        Note over QPU1: Step 4 — Pauli corrections + local CNOT
+        QPU1->>QPU1: if c1: X(epr_b)
+        QPU1->>QPU1: if c0: Z(epr_b)
+        QPU1->>QPU1: CNOT(epr_b, q_tgt)
+        Note over QPU1: Remote CNOT achieved!
+    end
 ```
 
 ### LLVM Lowering — Control Flow Generation
 
-```
-                      DQC Dialect                              LLVM IR
-                      ══════════                               ═══════
+```mermaid
+flowchart LR
+    subgraph DQC["DQC Dialect"]
+        direction TB
+        CIF["dqc.c_if %cbit {\n  dqc.x %q\n}"]
+        REP["dqc.repeat 4 {\n  dqc.h %q\n}"]
+        MCX["dqc.mcx %c0, %c1,\n  %c2, %tgt"]
+    end
 
-  dqc.c_if %cbit {                              %cmp = icmp eq i32 %cbit, 1
-    dqc.x %q                                    br i1 %cmp, label %then, label %merge
-  }                                            then:
-                                                 call void @dqc_x(i32 %q)
-        │                                        br label %merge
-        │  lowers to ──>                       merge:
-        v                                        ...
+    subgraph LLVM["LLVM IR"]
+        direction TB
+        CIF_IR["<b>Conditional Branch</b>\n%cmp = icmp eq i32 %cbit, 1\nbr i1 %cmp, %then, %merge\nthen:\n  call @dqc_x(i32 %q)\n  br %merge\nmerge: ..."]
+        REP_IR["<b>Counted Loop</b>\nheader:\n  %i = phi i64 [0, entry]\n  %c = icmp slt i64 %i, 4\n  br i1 %c, %body, %exit\nbody:\n  call @dqc_h(i32 %q)\n  %n = add i64 %i, 1\n  br %header\nexit: ..."]
+        MCX_IR["<b>Stack Array + Call</b>\n%arr = alloca i32, i32 3\nstore %c0 → arr[0]\nstore %c1 → arr[1]\nstore %c2 → arr[2]\ncall @dqc_mcx(\n  ptr %arr, i32 3, i32 %tgt)"]
+    end
 
-  dqc.repeat 4 {                               entry:
-    dqc.h %q                                     br label %header
-  }                                            header:
-                                                 %i = phi i64 [0, %entry], [%next, %body]
-        │                                        %cond = icmp slt i64 %i, 4
-        │  lowers to ──>                         br i1 %cond, label %body, label %exit
-        v                                      body:
-                                                 call void @dqc_h(i32 %q)
-                                                 %next = add i64 %i, 1
-                                                 br label %header
-                                               exit:
-                                                 ...
+    CIF -->|"lowers to"| CIF_IR
+    REP -->|"lowers to"| REP_IR
+    MCX -->|"lowers to"| MCX_IR
 
-  dqc.mcx %c0, %c1, %c2, %tgt                 %arr = alloca i32, i32 3
-                                                store i32 %c0, ptr %arr
-        │                                       %p1 = getelementptr i32, ptr %arr, i32 1
-        │  lowers to ──>                        store i32 %c1, ptr %p1
-        v                                       %p2 = getelementptr i32, ptr %arr, i32 2
-                                                store i32 %c2, ptr %p2
-                                                call void @dqc_mcx(ptr %arr, i32 3, i32 %tgt)
+    style DQC fill:#1a1a2e,stroke:#e94560,color:#eee
+    style LLVM fill:#0d1117,stroke:#3fb950,color:#eee
 ```
 
 ### Qubit Partitioning — Hypergraph Min-Cut
 
+```mermaid
+graph LR
+    subgraph Circuit["Input Circuit"]
+        direction TB
+        q0["q0"] -->|CNOT| q1["q1"]
+        q1 -->|CNOT| q2["q2"]
+        q2 -->|CNOT| q3["q3"]
+        q3 -->|CNOT| q4["q4"]
+        q4 -->|CNOT| q5["q5"]
+    end
+
+    subgraph Hypergraph["Interaction Hypergraph"]
+        direction TB
+        h0((q0)) ---|"w=2"| h1((q1))
+        h1 ---|"w=1"| h2((q2))
+        h2 ---|"w=1"| h3((q3))
+        h3 ---|"w=1"| h4((q4))
+        h4 ---|"w=1"| h5((q5))
+    end
+
+    subgraph Result["Greedy Min-Cut Result"]
+        direction TB
+        subgraph QPU0["QPU 0"]
+            r0((q0))
+            r1((q1))
+            r2((q2))
+        end
+        subgraph QPU1["QPU 1"]
+            r3((q3))
+            r4((q4))
+            r5((q5))
+        end
+        r2 -.-|"cross-QPU\n1 telegate"| r3
+    end
+
+    Circuit --> Hypergraph --> Result
+
+    style QPU0 fill:#16213e,stroke:#0f3460,color:#eee
+    style QPU1 fill:#1a1a2e,stroke:#e94560,color:#eee
 ```
-  Input circuit with 6 qubits:               Interaction hypergraph:
 
-  q0 ──H──●──────────────                      q0 ────── q1    (weight: 2, from 2 CNOTs)
-           │                                    │ ╲
-  q1 ─────⊕──●───────────                      │   ╲
-              │                                 │    q3          (weight: 1)
-  q2 ──H─────⊕──●────────                      │   ╱
-                 │                              │  ╱
-  q3 ────────────⊕──●─────                     q2 ────── q4    (weight: 1)
-                    │                                ╲
-  q4 ───────────────⊕──●──                            ╲
-                       │                               q5       (weight: 1)
-  q5 ──────────────────⊕──
+### Peephole Cancellation
 
-  Greedy min-cut with 2 QPUs:                 Result:
+```mermaid
+flowchart LR
+    subgraph Before["Before Cancellation"]
+        direction LR
+        B1["H"] --> B2["H"] --> B3["X"] --> B4["T"] --> B5["X"]
+    end
 
-  Cut weight: minimize cross-QPU edges         ┌─────────┐     ┌─────────┐
-                                                │  QPU 0  │     │  QPU 1  │
-  Assign greedily:                              │         │     │         │
-    q0 → QPU 0  (heaviest node first)          │  q0     │     │  q3     │
-    q1 → QPU 0  (connected to q0)              │  q1     │     │  q4     │
-    q2 → QPU 0  (connected to q1)              │  q2     │     │  q5     │
-    q3 → QPU 1  (balance constraint)           └─────────┘     └─────────┘
-    q4 → QPU 1  (connected to q3)
-    q5 → QPU 1  (connected to q4)              Cross-QPU edge: q2──q3 (1 telegate needed)
-```
+    subgraph After["After Cancellation"]
+        direction LR
+        A1["T"]
+    end
 
-### Peephole Cancellation in Greedy Reordering
+    Before -->|"H·H = I\nX·X = I"| After
 
-```
-  Before:                                     After:
+    subgraph Rules["Self-Inverse Rules"]
+        direction TB
+        R1["H·H → I"]
+        R2["X·X → I"]
+        R3["Y·Y → I"]
+        R4["Z·Z → I"]
+        R5["CNOT·CNOT → I"]
+        R6["SWAP·SWAP → I"]
+        R7["CZ·CZ → I"]
+    end
 
-  q0 ──[H]──[H]──[X]──[T]──[X]──            q0 ──[T]──                    (H·H = I, X·X = I)
-
-  q0 ──●──  ──●──                             q0 ──                         (CNOT·CNOT = I)
-       │       │
-  q1 ──⊕──  ──⊕──                             q1 ──
-
-  Self-inverse gates detected and cancelled:
-    H·H → I        X·X → I        Y·Y → I        Z·Z → I
-    CNOT·CNOT → I  SWAP·SWAP → I  CZ·CZ → I
+    style Before fill:#1a1a2e,stroke:#e94560,color:#eee
+    style After fill:#0d1117,stroke:#3fb950,color:#eee
+    style Rules fill:#16213e,stroke:#d2a8ff,color:#eee
 ```
 
 ### Verification Pipeline (`--verify`)
 
+```mermaid
+flowchart TB
+    A["Original Circuit\n(pre-reordering)"] --> B["Compile-Time Statevector\nSimulation"]
+    B --> C["sv_pre 0..2^n-1"]
+
+    A --> D["Run GreedyReordering\nPass"]
+    D --> E["Reordered Circuit"]
+    E --> F["Compile-Time Statevector\nSimulation"]
+    F --> G["sv_post 0..2^n-1"]
+
+    C --> H{"CHECK 1\nGate Multiset\nPer-qubit op sequence\npreserved?"}
+    G --> H
+
+    H -->|pass| I{"CHECK 2\nRotation Angles\nAll F64Attr angles\nconserved?"}
+    H -->|fail| FAIL
+
+    I -->|pass| J{"CHECK 3\nStatevector Equiv\n‖sv_pre − sv_post‖ < ε\n(tolerance 1e-6)"}
+    I -->|fail| FAIL
+
+    J -->|pass| OK["✓ VERIFIED\nContinue compilation"]
+    J -->|fail| FAIL["✗ VERIFY FAILED\nAbort with diagnostic:\nstate, amplitude mismatch,\nfirst divergent op"]
+
+    style A fill:#16213e,stroke:#0f3460,color:#eee
+    style OK fill:#0d1117,stroke:#3fb950,color:#eee
+    style FAIL fill:#1a1a2e,stroke:#e94560,color:#eee
 ```
-                    ┌──────────────────────────┐
-                    │  Original circuit (pre-   │
-                    │  reordering)              │
-                    └────────────┬─────────────┘
-                                 │
-                    ┌────────────v─────────────┐
-                    │  Simulate on 2^n state-  │──── sv_pre[0..2^n-1]
-                    │  vector (compile-time)   │
-                    └────────────┬─────────────┘
-                                 │
-                    ┌────────────v─────────────┐
-                    │  Run GreedyReordering    │
-                    └────────────┬─────────────┘
-                                 │
-                    ┌────────────v─────────────┐
-                    │  Simulate reordered      │──── sv_post[0..2^n-1]
-                    │  circuit                 │
-                    └────────────┬─────────────┘
-                                 │
-                    ┌────────────v─────────────┐
-                    │  CHECK 1: Gate multiset  │  Per-qubit op sequence preserved?
-                    │  CHECK 2: Rotation angles│  All F64Attr angles conserved?
-                    │  CHECK 3: ‖sv_pre -      │  Amplitude-by-amplitude match
-                    │           sv_post‖ < ε   │  within tolerance 1e-6?
-                    └────────────┬─────────────┘
-                                 │
-                          pass ──┤── fail
-                                 │     │
-                                 v     v
-                              continue  abort with diagnostic:
-                                        "VERIFY FAILED: divergence at
-                                         state |0101>, amplitude mismatch
-                                         0.707+0i vs 0.500+0.500i"
+
+### Runtime Execution Model
+
+```mermaid
+flowchart TB
+    subgraph Binary["Native Executable"]
+        MAIN["main()"] --> INIT["dqc_init(n)\nAllocate 2^n complex\namplitude array\nAll amps = 0, amp[0] = 1"]
+        INIT --> GATES["Gate Execution Loop\n━━━━━━━━━━━━━━━━━━\ndqc_h(q): bit-mask pairs, apply 2×2 unitary\ndqc_cnot(c,t): check ctrl mask, swap amps\ndqc_mcx(arr,n,t): check ALL ctrl bits, flip target\ndqc_mcp(arr,n,t,θ): check ALL ctrls, apply e^iθ\ndqc_measure(q): Born sample, collapse, renorm\ndqc_reset(q): measure + conditional X"]
+        GATES --> DUMP["dqc_dump_state()\n━━━━━━━━━━━━━━━━━━\nIterate 2^n amplitudes\nCompute |α|² probabilities\nPrint bar chart:\n  |00⟩ ████████ 50.0%\n  |11⟩ ████████ 50.0%"]
+        DUMP --> FIN["dqc_finalize()\nFree statevector memory"]
+    end
+
+    style Binary fill:#0d1117,stroke:#58a6ff,color:#c9d1d9
 ```
 
 Features
@@ -414,7 +414,7 @@ dqc1/
 │   ├── PassRegistry.cpp       # Pass registration
 │   └── Init.cpp               # Dialect initialization
 ├── runtime/
-│   ├── dqc_runtime.h          # Public runtime API (59 lines)
+│   ├── dqc_runtime.h          # Public runtime API
 │   ├── state_vector.c         # Dense 2^n statevector management
 │   ├── gates.c                # All gate implementations (H thru MCP)
 │   ├── measurement.c          # Born-rule sampling + collapse
