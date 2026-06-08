@@ -1,0 +1,8 @@
+build/
+*.o
+*.a
+*.so
+*.dylib
+.DS_Store
+.claude/
+__pycache__/
