@@ -1,0 +1,221 @@
+#!/bin/bash
+#
+# dqc — DQC Quantum Compiler
+#
+# Usage:
+#   dqc circuit.mlir                compile + run
+#   dqc circuit.mlir -o circuit     compile only, save binary
+#   dqc circuit.mlir -v             compile + run with verbose output
+#   dqc circuit.mlir --emit-ll      show generated LLVM IR (.ll)
+#   dqc circuit.mlir --passes       show output of each compiler pass
+#   dqc circuit.mlir --pass1        show output of a specific pass (1-5)
+#   dqc -r circuit                  run previously compiled binary
+#
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BUILD_DIR="$SCRIPT_DIR/../build"
+COMPILE="$BUILD_DIR/tools/dqc-compile/dqc-compile"
+OPT="$BUILD_DIR/tools/dqc-opt/dqc-opt"
+CLANG="/opt/homebrew/opt/llvm/bin/clang"
+RUNTIME_DIR="$BUILD_DIR/runtime"
+TMP_DIR="/tmp/dqc_build"
+
+mkdir -p "$TMP_DIR"
+
+# ── Parse args ───────────────────────────────────
+
+VERBOSE=0
+OUTPUT=""
+RUN_ONLY=0
+SHOW_PASSES=0
+SHOW_PASS=""
+SHOW_LL=0
+VERIFY=0
+INPUT=""
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -v|--verbose)  VERBOSE=1; shift ;;
+        -o)            OUTPUT="$2"; shift 2 ;;
+        -r|--run)      RUN_ONLY=1; shift ;;
+        --passes)      SHOW_PASSES=1; shift ;;
+        --verify)      VERIFY=1; shift ;;
+        --pass1)       SHOW_PASS="1"; shift ;;
+        --pass2)       SHOW_PASS="2"; shift ;;
+        --pass3)       SHOW_PASS="3"; shift ;;
+        --pass4)       SHOW_PASS="4"; shift ;;
+        --pass5)       SHOW_PASS="5"; shift ;;
+        --emit-ll)     SHOW_LL=1; shift ;;
+        -h|--help)
+            echo ""
+            echo "  DQC Quantum Compiler"
+            echo ""
+            echo "  Usage:"
+            echo "    dqc <file.mlir>              compile and run"
+            echo "    dqc <file.mlir> -o <out>     compile to binary"
+            echo "    dqc <file.mlir> -v           verbose (show internals)"
+            echo ""
+            echo "  See intermediate outputs:"
+            echo "    dqc <file.mlir> --passes     show all 5 compiler passes"
+            echo "    dqc <file.mlir> --pass1      Pass 1: Interaction Graph"
+            echo "    dqc <file.mlir> --pass2      Pass 2: TeleGate Synthesis"
+            echo "    dqc <file.mlir> --pass3      Pass 3: Greedy Reordering"
+            echo "    dqc <file.mlir> --pass4      Pass 4: MPI Lowering"
+            echo "    dqc <file.mlir> --pass5      Pass 5: LLVM Lowering"
+            echo "    dqc <file.mlir> --emit-ll    show generated LLVM IR"
+            echo ""
+            echo "  File types:"
+            echo "    .mlir     source code (input)"
+            echo "    .ll       LLVM IR (intermediate)"
+            echo "    (none)    native binary (final output)"
+            echo ""
+            echo "  Pipeline:  .mlir → Pass 1-5 → .ll → binary"
+            echo ""
+            exit 0 ;;
+        *)  INPUT="$1"; shift ;;
+    esac
+done
+
+if [ -z "$INPUT" ]; then
+    echo "dqc: no input file"
+    echo "Try: dqc --help"
+    exit 1
+fi
+
+# ── Run-only mode ────────────────────────────────
+
+if [ "$RUN_ONLY" = 1 ]; then
+    if [ ! -x "$INPUT" ]; then
+        echo "dqc: '$INPUT' is not an executable"
+        exit 1
+    fi
+    if [ "$VERBOSE" = 1 ]; then
+        DQC_VERBOSE=1 "$INPUT"
+    else
+        "$INPUT"
+    fi
+    exit $?
+fi
+
+# ── Check input exists ──────────────────────────
+
+if [ ! -f "$INPUT" ]; then
+    echo "dqc: file '$INPUT' not found"
+    exit 1
+fi
+
+BASENAME=$(basename "$INPUT" .mlir)
+
+# ── Pass names ───────────────────────────────────
+
+PASS_NAMES=(
+    ""
+    "Pass 1: Interaction Graph — partitions qubits across QPUs"
+    "Pass 2: TeleGate Synthesis — replaces cross-QPU gates with teleportation"
+    "Pass 3: Greedy Reordering — optimizes operation order for communication"
+    "Pass 4: MPI Lowering — converts to distributed communication primitives"
+    "Pass 5: LLVM Lowering — converts everything to LLVM runtime calls"
+)
+
+PASS_FLAGS=(
+    ""
+    "--dqc-interaction-graph"
+    "--dqc-interaction-graph --dqc-ccx-decomposition --dqc-telegate-synthesis"
+    "--dqc-interaction-graph --dqc-ccx-decomposition --dqc-telegate-synthesis --dqc-greedy-reordering"
+    "--dqc-interaction-graph --dqc-ccx-decomposition --dqc-telegate-synthesis --dqc-greedy-reordering --dqc-mpi-lowering"
+    "--dqc-interaction-graph --dqc-ccx-decomposition --dqc-telegate-synthesis --dqc-greedy-reordering --dqc-mpi-lowering --dqc-llvm-lowering"
+)
+
+# ── Show single pass ────────────────────────────
+
+if [ -n "$SHOW_PASS" ]; then
+    echo ""
+    echo "  ${PASS_NAMES[$SHOW_PASS]}"
+    echo "  ─────────────────────────────────────────────"
+    echo ""
+    ACTUAL_FLAGS=${PASS_FLAGS[$SHOW_PASS]}
+    if [ "$VERIFY" = 1 ]; then
+        ACTUAL_FLAGS=${ACTUAL_FLAGS//--dqc-greedy-reordering/--dqc-greedy-reordering=verify}
+    fi
+    eval "$OPT" "$INPUT" $ACTUAL_FLAGS 2>&1
+    echo ""
+    exit 0
+fi
+
+# ── Show all passes ─────────────────────────────
+
+COMPILE_ARGS=()
+if [ "$VERIFY" = 1 ]; then
+    COMPILE_ARGS+=("--verify")
+fi
+
+if [ "$SHOW_PASSES" = 1 ]; then
+    echo ""
+    echo "  Input: $BASENAME.mlir"
+    echo ""
+
+    for i in 1 2 3 4 5; do
+        echo "  ${PASS_NAMES[$i]}"
+        echo "  ─────────────────────────────────────────────"
+        echo ""
+        ACTUAL_FLAGS=${PASS_FLAGS[$i]}
+        if [ "$VERIFY" = 1 ]; then
+            ACTUAL_FLAGS=${ACTUAL_FLAGS//--dqc-greedy-reordering/--dqc-greedy-reordering=verify}
+        fi
+        eval "$OPT" "$INPUT" $ACTUAL_FLAGS 2>&1
+        echo ""
+    done
+
+    # Also show LLVM IR
+    "$COMPILE" -q "${COMPILE_ARGS[@]}" "$INPUT" -o "$TMP_DIR/${BASENAME}.ll" 2>/dev/null
+    echo "  Final: LLVM IR (.ll)"
+    echo "  ─────────────────────────────────────────────"
+    echo ""
+    cat "$TMP_DIR/${BASENAME}.ll"
+    echo ""
+    exit 0
+fi
+
+# ── Compile ──────────────────────────────────────
+
+"$COMPILE" -q "${COMPILE_ARGS[@]}" "$INPUT" -o "$TMP_DIR/${BASENAME}.ll" 2>/dev/null
+if [ $? -ne 0 ]; then
+    "$COMPILE" "${COMPILE_ARGS[@]}" "$INPUT" -o "$TMP_DIR/${BASENAME}.ll"
+    exit 1
+fi
+
+# ── Show LLVM IR ─────────────────────────────────
+
+if [ "$SHOW_LL" = 1 ]; then
+    echo ""
+    echo "  Generated LLVM IR: $BASENAME.ll"
+    echo "  ─────────────────────────────────────────────"
+    echo ""
+    cat "$TMP_DIR/${BASENAME}.ll"
+    echo ""
+    exit 0
+fi
+
+# ── Link ─────────────────────────────────────────
+
+TARGET="${OUTPUT:-$TMP_DIR/$BASENAME}"
+"$CLANG" "$TMP_DIR/${BASENAME}.ll" -L"$RUNTIME_DIR" -ldqc_runtime -lm -o "$TARGET" 2>/dev/null
+
+if [ $? -ne 0 ]; then
+    echo "dqc: linking failed"
+    exit 1
+fi
+
+# If -o was given, just compile — don't run
+if [ -n "$OUTPUT" ]; then
+    echo "dqc: compiled → $OUTPUT"
+    exit 0
+fi
+
+# ── Run ──────────────────────────────────────────
+
+if [ "$VERBOSE" = 1 ]; then
+    DQC_VERBOSE=1 "$TARGET"
+else
+    "$TARGET"
+fi
