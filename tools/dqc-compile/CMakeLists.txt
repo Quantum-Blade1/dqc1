@@ -1,0 +1,21 @@
+add_llvm_executable(dqc-compile
+  dqc-compile.cpp
+)
+
+target_link_libraries(dqc-compile
+  PRIVATE
+  DQCCompiler
+  DQCDialect
+  MLIRIR
+  MLIRParser
+  MLIRPass
+  MLIRSupport
+  MLIRFuncDialect
+  MLIRArithDialect
+  MLIRLLVMDialect
+  MLIRLLVMCommonConversion
+  MLIRFuncToLLVM
+  MLIRTargetLLVMIRExport
+  MLIRLLVMToLLVMIRTranslation
+  MLIRBuiltinToLLVMIRTranslation
+)
